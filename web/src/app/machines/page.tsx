@@ -1,6 +1,7 @@
 import { getClock, getWorklist, getFleetSummary, getModalityMix } from "@/lib/queries";
 import { Topbar, Stat, fmtNum } from "@/components/dash/ui";
 import { FleetBrowser } from "@/components/dash/fleet-browser";
+import { MethodStrip } from "@/components/dash/info";
 
 export const dynamic = "force-dynamic";
 
@@ -26,6 +27,14 @@ export default async function Machines() {
             Every machine under management. Filter by modality, health, or country — click any unit to open its full history.
           </p>
         </div>
+
+        <MethodStrip label="HOW A MACHINE IS BANDED">
+          Each card&apos;s band comes from the model&apos;s calibrated <b>P(fail ≤ 7d)</b>:
+          <b> critical ≥ 0.15</b>, <b>watch ≥ 0.05</b>, else healthy — thresholds set by the
+          cost asymmetry (a miss ≈ 100× a false alarm), not by eyeballing. Open any machine to see
+          its <b>SHAP risk drivers</b> (why), its <b>z-score anomaly</b> signal, and <b>retrieved
+          similar cases</b> — the three modules for one unit.
+        </MethodStrip>
 
         <FleetBrowser rows={rows} />
       </div>

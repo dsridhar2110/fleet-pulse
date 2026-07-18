@@ -38,7 +38,7 @@ export function Topbar({ title, currentDate }: { title: string; currentDate: str
 export function Stat({
   label, value, foot, tone,
 }: {
-  label: string; value: React.ReactNode; foot?: React.ReactNode;
+  label: React.ReactNode; value: React.ReactNode; foot?: React.ReactNode;
   tone?: "data" | "primary" | "default";
 }) {
   const cls = tone === "data" ? "stat-value accent-data" : tone === "primary" ? "stat-value accent-primary" : "stat-value";

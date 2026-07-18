@@ -189,7 +189,36 @@ CREATE TABLE IF NOT EXISTS governance_actions (
 );
 CREATE INDEX IF NOT EXISTS idx_governance_ts ON governance_actions(ts);
 
+-- ========================================================================== --
+--  Data-science depth surfaces (Module 1 drivers, Module 2 anomaly, Module 3 retrieval)
+-- ========================================================================== --
+-- Module 1 — per-machine risk drivers (SHAP top contributions on the current day).
+CREATE TABLE IF NOT EXISTS risk_drivers (
+    machine_id      TEXT PRIMARY KEY REFERENCES machines(machine_id),
+    as_of_date      DATE NOT NULL,
+    drivers         JSONB NOT NULL     -- [{feature, value, contribution, direction}, ...]
+);
+
+-- Module 2 — per-machine unsupervised anomaly signal (the shipped z-score winner,
+-- plus the linear-autoencoder reconstruction error for the comparison).
+CREATE TABLE IF NOT EXISTS anomaly_daily (
+    machine_id      TEXT PRIMARY KEY REFERENCES machines(machine_id),
+    as_of_date      DATE NOT NULL,
+    zscore_anomaly  REAL,              -- shipped signal: max |z| across sensors vs healthy baseline
+    recon_error     REAL,              -- linear-AE (PCA-16) reconstruction error
+    is_anomaly      BOOLEAN,           -- z-score over the healthy-percentile threshold
+    top_sensor      TEXT               -- sensor driving the anomaly
+);
+
+-- Module 3 — per-machine retrieved similar historical tickets (TF-IDF + cosine).
+CREATE TABLE IF NOT EXISTS ticket_neighbors (
+    machine_id      TEXT PRIMARY KEY REFERENCES machines(machine_id),
+    query_text      TEXT,
+    neighbors       JSONB NOT NULL     -- [{ticket_id, machine_id, similarity, component, note}, ...]
+);
+
 -- Small key/value for world bookkeeping (current sim date, world epoch, etc.).
+-- Also stores 'model_card' — the single source of truth for headline metrics + method text.
 CREATE TABLE IF NOT EXISTS world_meta (
     key             TEXT PRIMARY KEY,
     value           JSONB NOT NULL,

@@ -1,154 +1,173 @@
-import { getClock, getFleetSummary, getHealthTrend, getWorklist, getEvolutionLog, band } from "@/lib/queries";
-import { Topbar, Stat, Pill, fmtMoney, fmtNum, fmtPct } from "@/components/dash/ui";
-import { Donut, StackedArea, Spark } from "@/components/dash/charts";
-import Link from "next/link";
-import { ArrowUpRight, ShieldCheck } from "lucide-react";
+import { getClock, getModelVersions, getEvolutionLog, getModelCard } from "@/lib/queries";
+import { Topbar, Stat, fmtPct, fmtDate } from "@/components/dash/ui";
+import { MultiLine } from "@/components/dash/charts";
+import { Info, MethodStrip } from "@/components/dash/info";
 
 export const dynamic = "force-dynamic";
 
-export default async function Overview() {
-  const [clock, s, trend, worklist, evo] = await Promise.all([
-    getClock(), getFleetSummary(), getHealthTrend(), getWorklist(6), getEvolutionLog(),
+const dotClass: Record<string, string> = { "auto-approve": "auto", approve: "", hold: "hold", rollback: "rollback" };
+const govClass: Record<string, string> = { "auto-approve": "gov-auto", approve: "gov-approve", hold: "gov-hold", rollback: "gov-rollback" };
+
+export default async function Home() {
+  const [clock, versions, evo, card] = await Promise.all([
+    getClock(), getModelVersions(), getEvolutionLog(), getModelCard(),
   ]);
-  const gov = evo.slice(-3).reverse();
+  const champ = versions.find((v) => v.status === "champion") ?? versions[versions.length - 1];
+  const m = card?.metrics ?? { pr_auc_7d: 0, precision_at_20: 0, recall_at_20: 0, prevalence_7d: 0.008 };
+  const labels = versions.map((v) => v.version);
+  const anom = card?.modules?.m2?.benchmark ?? {};
+  const ret = card?.modules?.m3?.metrics ?? {};
 
   return (
     <>
-      <Topbar title="Overview" currentDate={clock.current_date} />
+      <Topbar title="Model & Governance" currentDate={clock.current_date} />
       <div className="container grid" style={{ gap: 20 }}>
 
         <section className="hero">
-          <div className="hero-eyebrow"><ShieldCheck size={14} /> 12 months live · continual learning under governance</div>
-          <h2>Every scanner in the fleet, watched every single day.</h2>
+          <div className="hero-eyebrow">Model card · continual learning · human-in-the-loop</div>
+          <h2>The thinking behind Fleet Pulse.</h2>
           <p>
-            A model scores {fmtNum(s.machines)} imaging machines across {fmtNum(s.customers)} customers for failure risk over
-            five horizons, turns that risk into a weekly service worklist, and learns from what actually happens — with a
-            human as the governor.
+            Three modules — a supervised failure model, an unsupervised anomaly signal, and a retrieval
+            copilot — under a governed champion/challenger loop. {card?.built}
           </p>
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 40, marginTop: 26, alignItems: "flex-end" }}>
-            <div>
-              <div className="hero-figure">{fmtMoney(s.cumulative_net_savings)}</div>
-              <div className="muted" style={{ fontSize: "0.82rem", marginTop: 8 }}>net saved vs. doing nothing · last 12 months</div>
-            </div>
-            <div style={{ display: "flex", gap: 32 }}>
-              <div>
-                <div className="stat-value sm accent-data">{fmtPct(s.detection_rate)}</div>
-                <div className="muted" style={{ fontSize: "0.78rem", marginTop: 6 }}>of failures caught</div>
-              </div>
-              <div>
-                <div className="stat-value sm">{fmtNum(s.caught)}</div>
-                <div className="muted" style={{ fontSize: "0.78rem", marginTop: 6 }}>proactive catches</div>
-              </div>
-            </div>
-          </div>
         </section>
 
+        {/* Model card: canonical metrics with DS rationale on hover */}
         <div className="grid grid-4">
-          <Stat label="Machines under management" value={fmtNum(s.machines)}
-            foot={<span className="delta-up"><ArrowUpRight size={13} /> +{s.new_this_month} onboarded this quarter</span>} />
-          <Stat label="Critical now" value={<span style={{ color: "var(--critical)" }}>{s.critical}</span>}
-            foot={<span className="muted">{s.watch} on watch · {fmtNum(s.healthy)} healthy</span>} />
-          <Stat label="Fleet risk this week" value={fmtMoney(s.fleet_expected_loss)}
-            foot={<span className="muted">expected downtime loss if unmanaged</span>} />
-          <Stat label="Detection rate" tone="data" value={fmtPct(s.detection_rate)}
-            foot={<span className="muted">{s.caught} caught · {s.missed} missed</span>} />
+          <Stat label="Current champion" tone="primary" value={champ?.version ?? "—"} foot={<span className="muted">{champ?.algo} · trained {champ && fmtDate(champ.trained_to)}</span>} />
+          <div className="card">
+            <div className="stat-label" style={{ display: "flex", alignItems: "center", gap: 6 }}>PR-AUC (7-day) <Info text="Area under precision–recall. Chosen over ROC-AUC because at ~0.8% failure prevalence ROC-AUC is flattering; PR-AUC reflects performance on the rare positive class. Random baseline ≈ prevalence." /></div>
+            <div className="stat-value accent-data">{m.pr_auc_7d.toFixed(3)}</div>
+            <div className="stat-foot muted">vs ~{m.prevalence_7d} random · held-out</div>
+          </div>
+          <div className="card">
+            <div className="stat-label" style={{ display: "flex", alignItems: "center", gap: 6 }}>Precision@20 <Info text="Of the 20 machines the team can inspect each week, the fraction that were genuine failures. A fixed-capacity metric — it matches how the service team actually works." /></div>
+            <div className="stat-value">{fmtPct(m.precision_at_20)}</div>
+            <div className="stat-foot muted">of the weekly worklist</div>
+          </div>
+          <div className="card">
+            <div className="stat-label" style={{ display: "flex", alignItems: "center", gap: 6 }}>Recall@20 <Info text="Of all failures that occurred in a week, the fraction captured in the top-20 worklist. This is the number the operating point is tuned to maximise — catching failures matters more than avoiding false alarms." /></div>
+            <div className="stat-value accent-data">{fmtPct(m.recall_at_20)}</div>
+            <div className="stat-foot muted">failures caught in top-20</div>
+          </div>
         </div>
 
-        <div className="grid grid-2">
-          <div className="card pad-lg">
-            <div className="card-head">
-              <div><div className="card-title">Fleet health, right now</div><div className="card-sub">7-day failure-risk bands</div></div>
+        <MethodStrip label="TRADE-OFF">{card?.tradeoff}</MethodStrip>
+
+        {/* The three modules */}
+        <div>
+          <div className="eyebrow" style={{ marginBottom: 10 }}>The three modules</div>
+          <div className="grid grid-3">
+            <div className="card pad-lg" style={{ borderTop: "3px solid var(--primary)" }}>
+              <div className="chip" style={{ marginBottom: 10 }}>Module 1</div>
+              <div className="card-title">{card?.modules?.m1?.name}</div>
+              <p className="muted" style={{ fontSize: "0.84rem", margin: "8px 0 12px" }}>{card?.modules?.m1?.method}</p>
+              <MethodStrip label="FEATURES">{card?.modules?.m1?.features}</MethodStrip>
+              <div style={{ height: 8 }} />
+              <MethodStrip label="VALIDATION">{card?.modules?.m1?.validation}</MethodStrip>
             </div>
-            <div style={{ display: "flex", alignItems: "center", gap: 26, flexWrap: "wrap" }}>
-              <Donut size={168} label={fmtNum(s.machines)} sub="machines"
-                items={[
-                  { value: s.critical, color: "var(--critical)" },
-                  { value: s.watch, color: "var(--watch)" },
-                  { value: s.healthy, color: "var(--healthy)" },
-                ]} />
-              <div style={{ display: "grid", gap: 12, flex: 1, minWidth: 160 }}>
-                {[
-                  { k: "Critical", v: s.critical, c: "var(--critical)", d: "inspect this week" },
-                  { k: "Watch", v: s.watch, c: "var(--watch)", d: "trending up" },
-                  { k: "Healthy", v: s.healthy, c: "var(--healthy)", d: "nominal" },
-                ].map((r) => (
-                  <div key={r.k} style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                    <i style={{ width: 10, height: 10, borderRadius: 3, background: r.c }} />
-                    <span style={{ fontWeight: 600, minWidth: 66 }}>{r.k}</span>
-                    <span className="tnum" style={{ fontWeight: 700 }}>{fmtNum(r.v)}</span>
-                    <span className="muted" style={{ fontSize: "0.78rem", marginLeft: "auto" }}>{r.d}</span>
+            <div className="card pad-lg" style={{ borderTop: "3px solid var(--data)" }}>
+              <div className="chip" style={{ marginBottom: 10 }}>Module 2</div>
+              <div className="card-title">{card?.modules?.m2?.name}</div>
+              <p className="muted" style={{ fontSize: "0.84rem", margin: "8px 0 12px" }}>
+                Three detectors benchmarked on the fleet (PR-AUC). We ship the interpretable winner.
+              </p>
+              <div style={{ display: "grid", gap: 7 }}>
+                {[["z-score alarm", anom.z_score_alarm, true], ["IsolationForest", anom.isolation_forest, false], ["autoencoder (196→16)", anom.linear_autoencoder_pca, false]].map(([k, v, ship]) => (
+                  <div key={k as string} style={{ display: "flex", alignItems: "center", gap: 10, fontSize: "0.84rem" }}>
+                    <span style={{ minWidth: 150 }} className={ship ? "" : "muted"}>{k as string}{ship ? " · shipped" : ""}</span>
+                    <div className="bar-track" style={{ flex: 1 }}><div className={`bar-fill ${ship ? "ok" : ""}`} style={{ width: `${Math.min(100, (v as number) / 0.06 * 100)}%` }} /></div>
+                    <span className="tnum" style={{ fontWeight: 700, minWidth: 42, textAlign: "right" }}>{(v as number)?.toFixed(3)}</span>
                   </div>
                 ))}
               </div>
+              <p className="faint" style={{ fontSize: "0.76rem", marginTop: 10 }}>{anom.note}</p>
             </div>
-          </div>
-
-          <div className="card pad-lg">
-            <div className="card-head">
-              <div><div className="card-title">Fleet health over time</div><div className="card-sub">machines by risk band, weekly</div></div>
-              <div className="legend">
-                <span><i style={{ background: "var(--healthy)" }} />Healthy</span>
-                <span><i style={{ background: "var(--watch)" }} />Watch</span>
-                <span><i style={{ background: "var(--critical)" }} />Critical</span>
+            <div className="card pad-lg" style={{ borderTop: "3px solid var(--data-3)" }}>
+              <div className="chip" style={{ marginBottom: 10 }}>Module 3</div>
+              <div className="card-title">{card?.modules?.m3?.name}</div>
+              <p className="muted" style={{ fontSize: "0.84rem", margin: "8px 0 12px" }}>{ret.vectorizer} + cosine over {ret.n_tickets} tickets. No LLM.</p>
+              <div style={{ display: "flex", gap: 22, margin: "4px 0 12px" }}>
+                <div><div className="stat-value sm accent-data">{fmtPct(ret.precision_at_1 ?? 0)}</div><div className="faint" style={{ fontSize: "0.72rem" }}>P@1 (component match)</div></div>
+                <div><div className="stat-value sm">{fmtPct(ret.majority_baseline ?? 0)}</div><div className="faint" style={{ fontSize: "0.72rem" }}>majority baseline</div></div>
               </div>
-            </div>
-            <StackedArea height={188} series={[
-              { name: "healthy", color: "var(--healthy)", values: trend.map((t) => t.healthy) },
-              { name: "watch", color: "var(--watch)", values: trend.map((t) => t.watch) },
-              { name: "critical", color: "var(--critical)", values: trend.map((t) => t.critical) },
-            ]} />
-            <div style={{ display: "flex", justifyContent: "space-between", marginTop: 8 }} className="faint">
-              <span style={{ fontSize: "0.7rem" }}>{trend[0]?.as_of_date.slice(0, 7)}</span>
-              <span style={{ fontSize: "0.7rem" }}>{trend[trend.length - 1]?.as_of_date.slice(0, 7)}</span>
+              <p className="faint" style={{ fontSize: "0.76rem" }}>{ret.note}</p>
             </div>
           </div>
         </div>
 
-        <div className="grid grid-2">
-          <div className="card pad-lg">
-            <div className="card-head">
-              <div><div className="card-title">Highest risk this week</div><div className="card-sub">top of the service worklist</div></div>
-              <Link href="/predictions" className="link">View all →</Link>
-            </div>
-            <div className="tbl-wrap">
-              <table className="tbl">
-                <thead><tr><th>Machine</th><th>Site</th><th>Survival curve</th><th className="num">7-day</th><th></th></tr></thead>
-                <tbody>
-                  {worklist.map((m) => (
-                    <tr key={m.machine_id}>
-                      <td className="mono"><Link href={`/machines/${m.machine_id}`} className="mlink">{m.machine_id}</Link></td>
-                      <td style={{ maxWidth: 150, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }} className="muted">{m.hospital_name}</td>
-                      <td><Spark values={[m.p7, m.p14, m.p30, m.p90, m.p180]} color={band(m.p7) === "critical" ? "var(--critical)" : "var(--watch)"} /></td>
-                      <td className="num tnum" style={{ fontWeight: 700 }}>{fmtPct(m.p7)}</td>
-                      <td><Pill band={band(m.p7)} /></td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+        {/* Performance trajectory */}
+        <div className="card pad-lg">
+          <div className="card-head">
+            <div><div className="card-title">Performance trajectory</div><div className="card-sub">measured at each real quarterly retrain — the gate held challengers that didn&apos;t beat the champion</div></div>
+            <div className="legend">
+              <span><i style={{ background: "var(--data)" }} />Recall@20</span>
+              <span><i style={{ background: "var(--primary)" }} />Precision@20</span>
+              <span><i style={{ background: "var(--data-2)" }} />PR-AUC</span>
             </div>
           </div>
+          <MultiLine labels={labels} height={200} series={[
+            { name: "recall", color: "var(--data)", values: versions.map((v) => v.metrics.recall_at_20) },
+            { name: "precision", color: "var(--primary)", values: versions.map((v) => v.metrics.precision_at_20) },
+            { name: "prauc", color: "var(--data-2)", values: versions.map((v) => v.metrics.pr_auc) },
+          ]} />
+          <div style={{ display: "flex", justifyContent: "space-between", marginTop: 6 }}>
+            {versions.map((v) => <span key={v.version} className="faint" style={{ fontSize: "0.7rem", fontFamily: "var(--font-mono)" }}>{v.version}</span>)}
+          </div>
+        </div>
 
+        {/* Evolution timeline + lineage */}
+        <div className="grid grid-2">
           <div className="card pad-lg">
-            <div className="card-head">
-              <div><div className="card-title">Model activity</div><div className="card-sub">recent learning & governance</div></div>
-              <Link href="/model" className="link">History →</Link>
-            </div>
-            <div style={{ display: "grid", gap: 12 }}>
-              {gov.map((e) => (
-                <div key={e.id} style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
-                  <span className={`gov-badge ${e.action === "auto-approve" ? "gov-auto" : e.action === "approve" ? "gov-approve" : "gov-hold"}`}>{e.action}</span>
-                  <div>
-                    <div style={{ fontSize: "0.86rem", fontWeight: 550 }}>{e.event_type.replace(/_/g, " ").toLowerCase()}</div>
-                    <div className="muted" style={{ fontSize: "0.78rem", marginTop: 2 }}>{e.note}</div>
-                  </div>
+            <div className="card-head"><div><div className="card-title">Model registry &amp; governance log</div><div className="card-sub">champion/challenger lineage — what changed, why, who signed off</div></div></div>
+            <div className="timeline">
+              {[...evo].reverse().map((e) => (
+                <div className="tl-item" key={e.id}>
+                  <span className={`tl-dot ${dotClass[e.action] ?? ""}`} />
+                  <div className="tl-date">{fmtDate(e.ts)} · {e.trigger.replace(/_/g, " ")}</div>
+                  <div className="tl-title">{e.event_type.replace(/_/g, " ")} {e.version && <span className="mono faint" style={{ fontWeight: 400 }}>→ {e.version}</span>}</div>
+                  <div className="tl-note">{e.note}</div>
+                  {e.action && (
+                    <div className="gov">
+                      <span className={`gov-badge ${govClass[e.action] ?? "chip"}`}>{e.action}</span>
+                      <span className="muted">{e.rationale} <span className="faint">— {e.actor_role}</span></span>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
           </div>
+
+          <div style={{ display: "grid", gap: 16, alignContent: "start" }}>
+            <div className="card pad-lg">
+              <div className="card-head"><div><div className="card-title">Version registry</div><div className="card-sub">stage · lineage · metric</div></div></div>
+              <div style={{ display: "grid", gap: 10 }}>
+                {[...versions].reverse().map((v) => (
+                  <div key={v.version} style={{ display: "flex", alignItems: "center", gap: 12, padding: "11px 13px", borderRadius: 11, background: "var(--surface-2)", border: "1px solid var(--border)" }}>
+                    <span className="mono" style={{ fontWeight: 700, color: v.status === "champion" ? "var(--primary-ink)" : "var(--muted)", minWidth: 42 }}>{v.version}</span>
+                    {v.status === "champion" && <span className="gov-badge gov-auto">champion</span>}
+                    {v.status === "challenger" && <span className="gov-badge gov-hold">held by gate</span>}
+                    <span className="muted" style={{ fontSize: "0.78rem" }}>{fmtDate(v.trained_to)}</span>
+                    <span className="tnum muted" style={{ marginLeft: "auto", fontSize: "0.8rem" }}>PR-AUC {v.metrics.pr_auc.toFixed(3)}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="card pad-lg">
+              <div className="card-title" style={{ marginBottom: 6 }}>Monitoring &amp; guardrails</div>
+              <p className="muted" style={{ fontSize: "0.8rem", marginBottom: 10 }}>Because outcomes mature daily, monitoring is a working loop — not slideware.</p>
+              <ul style={{ display: "grid", gap: 9, fontSize: "0.82rem", listStyle: "none" }}>
+                <li className="muted"><b style={{ color: "var(--text)" }}>Drift:</b> PSI / KS on features, calibration drift → retrain trigger</li>
+                <li className="muted"><span className="gov-badge gov-auto" style={{ marginRight: 8 }}>auto</span>scheduled retrain · threshold ≤ ±10% · no metric regression</li>
+                <li className="muted"><span className="gov-badge gov-approve" style={{ marginRight: 8 }}>human</span>bigger threshold move · feature removal · promotion after any regression</li>
+                <li className="muted"><span className="gov-badge gov-rollback" style={{ marginRight: 8 }}>gate</span>a challenger that doesn&apos;t beat the champion is blocked &amp; rolled back</li>
+              </ul>
+            </div>
+          </div>
         </div>
 
-        <p className="faint" style={{ fontSize: "0.74rem", textAlign: "center", marginTop: 8 }}>
-          Independent interview-prep project · all data synthetic · not affiliated with, endorsed by, or built on data from any manufacturer.
+        <p className="faint" style={{ fontSize: "0.74rem" }}>
+          Metrics are the champion&apos;s held-out numbers (single source of truth). Independent portfolio project · all data synthetic.
         </p>
       </div>
     </>

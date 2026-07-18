@@ -244,6 +244,43 @@ export async function getMachineEvents(id: string, limit = 12): Promise<EventRow
   `) as EventRow[];
 }
 
+// ---------------------------------------------------------------- DS depth
+export type ModelCard = {
+  champion: string; built: string; as_of: string;
+  metrics: { pr_auc_7d: number; precision_at_20: number; recall_at_20: number; prevalence_7d: number };
+  modules: {
+    m1: { name: string; method: string; features: string; validation: string; stack: string };
+    m2: { name: string; benchmark: Record<string, any> };
+    m3: { name: string; metrics: Record<string, any> };
+  };
+  tradeoff: string;
+};
+
+export async function getModelCard(): Promise<ModelCard | null> {
+  const r = (await sql`SELECT value FROM world_meta WHERE key='model_card'`) as { value: ModelCard }[];
+  return r[0]?.value ?? null;
+}
+
+export type Driver = { feature: string; raw: string; value: number | null; contribution: number; direction: string };
+export async function getRiskDrivers(id: string): Promise<Driver[]> {
+  const r = (await sql`SELECT drivers FROM risk_drivers WHERE machine_id=${id}`) as { drivers: Driver[] }[];
+  return r[0]?.drivers ?? [];
+}
+
+export type Anomaly = { zscore_anomaly: number; recon_error: number; is_anomaly: boolean; top_sensor: string | null };
+export async function getAnomaly(id: string): Promise<Anomaly | null> {
+  const r = (await sql`SELECT zscore_anomaly::float, recon_error::float, is_anomaly, top_sensor
+    FROM anomaly_daily WHERE machine_id=${id}`) as Anomaly[];
+  return r[0] ?? null;
+}
+
+export type Neighbor = { ticket_id: number; machine_id: string; similarity: number; component: string; note: string };
+export type TicketNeighbors = { query_text: string; neighbors: Neighbor[] };
+export async function getTicketNeighbors(id: string): Promise<TicketNeighbors | null> {
+  const r = (await sql`SELECT query_text, neighbors FROM ticket_neighbors WHERE machine_id=${id}`) as TicketNeighbors[];
+  return r[0] ?? null;
+}
+
 // A few representative sensors per modality for the drill-down charts.
 export const KEY_SENSORS: Record<string, string[]> = {
   MRI: ["helium_level", "compressor_temp", "vibration_rms"],

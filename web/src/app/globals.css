@@ -285,6 +285,42 @@
 }
 .mcard:hover { transform: translateY(-2px); border-color: var(--border-2); background: var(--surface-2); }
 
+/* ---------- Tooltip (CSS-only) + method strips ---------------------------- */
+.tip { position: relative; display: inline-flex; vertical-align: middle; cursor: help; outline: none; }
+.tip-i {
+  display: inline-grid; place-items: center; width: 15px; height: 15px; border-radius: 50%;
+  font-size: 0.62rem; font-weight: 700; font-family: var(--font-mono); font-style: normal;
+  background: var(--surface-3); color: var(--muted); border: 1px solid var(--border-2);
+}
+.tip:hover .tip-i, .tip:focus .tip-i { background: var(--primary); color: #fff; border-color: var(--primary); }
+.tip-body {
+  position: absolute; bottom: calc(100% + 9px); left: 50%; transform: translateX(-50%) translateY(4px);
+  width: max-content; max-width: 300px; padding: 10px 12px; border-radius: 10px; z-index: 60;
+  background: var(--surface-3); color: var(--text); border: 1px solid var(--border-2);
+  font-size: 0.78rem; line-height: 1.5; font-weight: 400; text-transform: none; letter-spacing: 0;
+  box-shadow: 0 12px 30px -10px rgba(0,0,0,0.5); opacity: 0; pointer-events: none;
+  transition: opacity .14s ease, transform .14s ease;
+}
+.tip:hover .tip-body, .tip:focus .tip-body { opacity: 1; transform: translateX(-50%) translateY(0); }
+.tip-body::after {
+  content: ""; position: absolute; top: 100%; left: 50%; transform: translateX(-50%);
+  border: 6px solid transparent; border-top-color: var(--border-2);
+}
+
+.method-strip {
+  display: flex; gap: 12px; align-items: flex-start; padding: 12px 14px; border-radius: 11px;
+  background: color-mix(in srgb, var(--primary) 6%, var(--surface-2)); border: 1px solid var(--border);
+  border-left: 3px solid var(--primary);
+}
+.method-tag {
+  font-family: var(--font-mono); font-size: 0.62rem; font-weight: 700; letter-spacing: 0.1em;
+  color: var(--primary-ink); background: color-mix(in srgb, var(--primary) 14%, transparent);
+  padding: 3px 7px; border-radius: 6px; white-space: nowrap; margin-top: 1px;
+}
+.method-body { font-size: 0.82rem; color: var(--muted); line-height: 1.55; }
+.method-body b, .method-body strong { color: var(--text); font-weight: 600; }
+.method-body code { font-family: var(--font-mono); font-size: 0.86em; background: var(--surface-3); padding: 0.05rem 0.3rem; border-radius: 4px; color: var(--primary-ink); }
+
 .link { color: var(--primary-ink); font-size: 0.82rem; font-weight: 500; }
 .mlink { color: inherit; }
 .mlink:hover { color: var(--primary-ink); text-decoration: underline; }

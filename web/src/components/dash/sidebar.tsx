@@ -5,12 +5,12 @@ import { usePathname } from "next/navigation";
 import { Activity, HardDrive, Radar, ClipboardCheck, TrendingUp, GitBranch } from "lucide-react";
 
 const NAV = [
-  { href: "/", label: "Overview", icon: Activity },
+  { href: "/", label: "Model & Governance", icon: GitBranch },
   { href: "/machines", label: "Machines", icon: HardDrive },
   { href: "/predictions", label: "Predictions", icon: Radar },
   { href: "/decisions", label: "Decisions", icon: ClipboardCheck },
   { href: "/economics", label: "Economics", icon: TrendingUp },
-  { href: "/model", label: "Model & Governance", icon: GitBranch },
+  { href: "/overview", label: "Business Overview", icon: Activity },
 ];
 
 export function Sidebar() {

@@ -24,7 +24,7 @@ jobs:
           python-version: "3.13"
 
       - name: Install runtime deps (slim — no Spark needed for the tick)
-        run: pip install numpy pandas scipy scikit-learn xgboost sqlalchemy psycopg2-binary pyyaml
+        run: pip install numpy pandas scipy scikit-learn xgboost shap sqlalchemy psycopg2-binary pyyaml
 
       - name: Advance one day
         working-directory: ml
@@ -32,3 +32,10 @@ jobs:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           PYTHONPATH: src
         run: python -u -m serve.tick --days 1
+
+      - name: Refresh DS-depth surfaces (SHAP drivers, anomaly, retrieval, model card)
+        working-directory: ml
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          PYTHONPATH: src
+        run: python -u -m models.ds_depth

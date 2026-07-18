@@ -3,11 +3,12 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import {
   getClock, getMachine, getMachineTelemetry, getMachineRiskHistory,
-  getMachineTickets, getMachineEvents, KEY_SENSORS,
+  getMachineTickets, getMachineEvents, getRiskDrivers, getAnomaly, getTicketNeighbors, KEY_SENSORS,
 } from "@/lib/queries";
 import { band } from "@/lib/risk";
 import { Topbar, Pill, fmtPct, fmtDate, fmtNum } from "@/components/dash/ui";
 import { AreaChart, Spark } from "@/components/dash/charts";
+import { Info, MethodStrip } from "@/components/dash/info";
 
 export const dynamic = "force-dynamic";
 
@@ -21,10 +22,13 @@ export default async function MachinePage({ params }: { params: Promise<{ id: st
   const { id } = await params;
   const machine = await getMachine(id);
   if (!machine) notFound();
-  const [clock, tel, risk, tickets, events] = await Promise.all([
+  const [clock, tel, risk, tickets, events, drivers, anomaly, neighbors] = await Promise.all([
     getClock(), getMachineTelemetry(id, 120), getMachineRiskHistory(id),
     getMachineTickets(id), getMachineEvents(id),
+    getRiskDrivers(id), getAnomaly(id), getTicketNeighbors(id),
   ]);
+  const maxContrib = Math.max(0.01, ...drivers.map((d) => Math.abs(d.contribution)));
+  const zPct = anomaly ? Math.min(100, (anomaly.zscore_anomaly / 5) * 100) : 0;
 
   const b = band(machine.p7);
   const bandColor = b === "critical" ? "var(--critical)" : b === "watch" ? "var(--watch)" : "var(--healthy)";
@@ -73,7 +77,7 @@ export default async function MachinePage({ params }: { params: Promise<{ id: st
         {/* Risk */}
         <div className="grid grid-2">
           <div className="card pad-lg">
-            <div className="card-head"><div><div className="card-title">Failure risk — survival curve</div><div className="card-sub">probability of failure within each horizon</div></div></div>
+            <div className="card-head"><div><div className="card-title" style={{ display: "flex", alignItems: "center", gap: 7 }}>Failure risk — survival curve <Info text="S(t) = P(failure ≤ t). Reads left→right across horizons and is monotone non-decreasing because risk only accumulates over longer windows. 7/14-day points come from the XGBoost classifier; 30/90/180-day from the XGBoost-AFT survival model." /></div><div className="card-sub">P(fail ≤ horizon) at 7 / 14 / 30 / 90 / 180 days</div></div></div>
             <div style={{ display: "flex", justifyContent: "center", padding: "8px 0 16px" }}>
               <Spark values={[machine.p7, machine.p14, machine.p30, machine.p90, machine.p180]} width={280} height={72} color={bandColor} />
             </div>
@@ -94,6 +98,70 @@ export default async function MachinePage({ params }: { params: Promise<{ id: st
               : <p className="muted" style={{ padding: "40px 0", textAlign: "center" }}>Not enough history yet.</p>}
           </div>
         </div>
+
+        {/* Modules 1 & 2 converge for this machine */}
+        <div className="grid grid-2">
+          <div className="card pad-lg">
+            <div className="card-head"><div><div className="card-title" style={{ display: "flex", alignItems: "center", gap: 7 }}><span className="chip">M1</span> Why this machine <Info text="SHAP values decompose the model's log-odds for THIS machine into per-feature contributions. Positive = pushes risk up. This is how the supervised model 'explains' a prediction — the feature-extraction story made visible." /></div><div className="card-sub">top risk drivers · SHAP contributions</div></div></div>
+            <div style={{ display: "grid", gap: 11 }}>
+              {drivers.length === 0 && <p className="muted">No driver data.</p>}
+              {drivers.map((d, i) => {
+                const up = d.contribution > 0;
+                return (
+                  <div key={i} style={{ display: "grid", gap: 5 }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.84rem" }}>
+                      <span>{d.feature}</span>
+                      <span className="tnum" style={{ color: up ? "var(--critical)" : "var(--healthy)", fontWeight: 600 }}>{up ? "+" : ""}{d.contribution.toFixed(2)}</span>
+                    </div>
+                    <div className="bar-track"><div className="bar-fill" style={{ width: `${(Math.abs(d.contribution) / maxContrib) * 100}%`, background: up ? "linear-gradient(90deg,#ff7a7a,var(--critical))" : "linear-gradient(90deg,#5ee6bd,var(--healthy))" }} /></div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="card pad-lg">
+            <div className="card-head"><div><div className="card-title" style={{ display: "flex", alignItems: "center", gap: 7 }}><span className="chip">M2</span> Anomaly signal <Info text="Unsupervised, model-free. The max |z-score| of any sensor vs this machine's own healthy baseline. On the fleet, this z-score alarm beat the IsolationForest and the 196→16 autoencoder on PR-AUC — and unlike them it names the culprit sensor. Shown as an independent corroboration of the supervised risk." /></div><div className="card-sub">z-score vs healthy baseline · the shipped detector</div></div></div>
+            {anomaly ? (
+              <>
+                <div style={{ display: "flex", alignItems: "center", gap: 18, marginBottom: 14 }}>
+                  <div><div className="stat-value" style={{ color: anomaly.is_anomaly ? "var(--watch)" : "var(--healthy)" }}>{anomaly.zscore_anomaly.toFixed(1)}σ</div><div className="faint" style={{ fontSize: "0.72rem" }}>peak sensor deviation</div></div>
+                  <div style={{ flex: 1 }}>
+                    <div className="bar-track" style={{ height: 9 }}><div className="bar-fill" style={{ width: `${zPct}%`, background: anomaly.is_anomaly ? "linear-gradient(90deg,#ffca6b,var(--watch))" : "linear-gradient(90deg,#5ee6bd,var(--healthy))" }} /></div>
+                    <div style={{ display: "flex", justifyContent: "space-between", marginTop: 5 }} className="faint"><span style={{ fontSize: "0.68rem" }}>0σ</span><span style={{ fontSize: "0.68rem" }}>alarm ≥ 3σ</span><span style={{ fontSize: "0.68rem" }}>5σ</span></div>
+                  </div>
+                </div>
+                <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+                  <span className={`pill ${anomaly.is_anomaly ? "pill-watch" : "pill-healthy"}`}>{anomaly.is_anomaly ? "anomalous" : "within normal"}</span>
+                  {anomaly.top_sensor && <span className="chip">driver: {anomaly.top_sensor.replace(/_/g, " ")}</span>}
+                  <span className="chip">AE recon err {anomaly.recon_error.toFixed(3)}</span>
+                </div>
+                <p className="faint" style={{ fontSize: "0.76rem", marginTop: 12 }}>
+                  Unsupervised anomaly is a weak predictor alone (PR-AUC ~0.04) — its value is as an interpretable, model-independent second opinion alongside the supervised risk above.
+                </p>
+              </>
+            ) : <p className="muted">No anomaly signal.</p>}
+          </div>
+        </div>
+
+        {/* Module 3 — retrieval */}
+        {neighbors && neighbors.neighbors.length > 0 && (
+          <div className="card pad-lg">
+            <div className="card-head"><div><div className="card-title" style={{ display: "flex", alignItems: "center", gap: 7 }}><span className="chip">M3</span> Similar past cases <Info text="TF-IDF + cosine similarity over historical ticket symptoms (never the resolutions — that would leak the fix). Retrieval, not generation: no LLM, fully measurable. P@1 ≈ 0.87 vs a 0.41 majority baseline; misses are lexical, which is the measured case for embeddings next." /></div><div className="card-sub">TF-IDF retrieval over the fleet&apos;s ticket history — “{neighbors.query_text}”</div></div></div>
+            <div className="grid grid-3">
+              {neighbors.neighbors.map((n, i) => (
+                <div key={i} style={{ padding: "12px 14px", borderRadius: 11, background: "var(--surface-2)", border: "1px solid var(--border)" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 7 }}>
+                    <span className="mono faint" style={{ fontSize: "0.74rem" }}>{n.machine_id}</span>
+                    <span className="chip">{(n.similarity * 100).toFixed(0)}% match</span>
+                  </div>
+                  <div style={{ fontSize: "0.82rem" }}>{n.note}</div>
+                  {n.component && <div className="faint" style={{ fontSize: "0.72rem", marginTop: 6 }}>component: {n.component}</div>}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Telemetry */}
         <div>
