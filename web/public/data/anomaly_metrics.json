@@ -1,0 +1,19 @@
+{
+  "config": {
+    "window_days": 14,
+    "sensors": 14,
+    "input_dim": 196,
+    "architecture": "196-64-16-64-196 dense, MSE",
+    "train_windows": 14760,
+    "normalisation": "per-machine per-sensor z-score (train-period stats), clip +/-6",
+    "training_data": "healthy train-split windows only (no failure within 14d)",
+    "trained_on": "Databricks serverless (2026-07-11), TF via %pip"
+  },
+  "metrics": {
+    "prauc::Autoencoder (Keras, reconstruction error)": 0.1111,
+    "prauc::Rolling z-score alarm": 0.2019,
+    "prauc::IsolationForest": 0.0739,
+    "prauc::XGBoost (calibrated, supervised)": 0.4794,
+    "prevalence_test": 0.01263157894736842
+  }
+}

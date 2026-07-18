@@ -1,0 +1,176 @@
+/* ============================================================================
+   Fleet Pulse — Report Stylesheet
+   The single source of visual truth for every report / EDA / case study / snippet.
+   Link it (<link rel="stylesheet" href="../../design/report.css">) or inline it
+   for a standalone shareable file. Do not fork this file per-report.
+   Identity: Siemens Healthineers-inspired clinical petrol/teal. See DESIGN-SYSTEM.md.
+   ============================================================================ */
+
+:root {
+  --ground: #08262B;
+  --ground-2: #0C343A;
+  --teal: #0E8A92;
+  --teal-bright: #17B9C0;
+  --ink: #0A2226;
+  --ink-soft: #47656B;
+  --surface: #EDF3F3;
+  --paper: #FFFFFF;
+  --line: #D7E4E4;
+  --line-strong: #BFD2D2;
+  --critical: #D64545;
+  --watch: #C67F14;
+  --healthy: #1F9E78;
+  --on-dark: #E9F4F4;
+  --on-dark-soft: #93B7B9;
+
+  --sans: "Helvetica Neue", Helvetica, Arial, system-ui, sans-serif;
+  --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+
+  --wrap: 940px;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--surface);
+  color: var(--ink);
+  font-family: var(--sans);
+  font-size: 16px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+.wrap { width: 100%; max-width: var(--wrap); margin: 0 auto; padding-inline: clamp(1.1rem, 4vw, 2rem); }
+
+h1, h2, h3, h4 { font-weight: 700; letter-spacing: -0.015em; margin: 0; line-height: 1.15; text-wrap: balance; }
+p { margin: 0; }
+a { color: var(--teal); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+.mono { font-family: var(--mono); }
+.tnum { font-variant-numeric: tabular-nums; }
+.muted { color: var(--ink-soft); }
+
+.eyebrow {
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--teal);
+}
+
+/* ---- Cover / header ---- */
+.cover {
+  background: linear-gradient(180deg, var(--ground) 0%, var(--ground-2) 100%);
+  color: var(--on-dark);
+  border-bottom: 3px solid var(--teal);
+}
+.cover .wrap { padding-block: clamp(2rem, 5vw, 3.4rem); }
+.cover .eyebrow { color: var(--teal-bright); }
+.cover h1 { font-size: clamp(2rem, 5vw, 3rem); letter-spacing: -0.03em; margin-top: 0.8rem; color: #fff; }
+.cover .objective { color: var(--on-dark); font-size: clamp(1rem, 2vw, 1.15rem); max-width: 64ch; margin-top: 1rem; }
+.cover .objective b { color: var(--teal-bright); font-weight: 600; }
+
+.meta { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; background: rgba(255,255,255,0.12);
+        border: 1px solid rgba(255,255,255,0.12); border-radius: 10px; overflow: hidden; margin-top: 1.8rem; }
+.meta div { background: var(--ground-2); padding: 0.8rem 1rem; }
+.meta .k { font-size: 0.62rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--on-dark-soft); }
+.meta .v { font-size: 0.9rem; margin-top: 0.25rem; color: var(--on-dark); font-weight: 600; }
+@media (max-width: 680px) { .meta { grid-template-columns: repeat(2, 1fr); } }
+
+/* ---- Sections ---- */
+.section { padding-block: clamp(2rem, 4.5vw, 3rem); border-bottom: 1px solid var(--line); }
+.section:last-of-type { border-bottom: none; }
+.section-head { margin-bottom: 1.4rem; }
+.section-head h2 { display: flex; align-items: baseline; gap: 0.7rem; font-size: clamp(1.3rem, 3vw, 1.7rem); margin-top: 0.5rem; }
+.section-head h2 .no { font-family: var(--mono); font-size: 0.85rem; color: var(--teal); font-weight: 600; }
+.section p + p { margin-top: 1rem; }
+.lead { font-size: 1.06rem; max-width: 70ch; }
+h3 { font-size: 1.15rem; margin-top: 1.6rem; margin-bottom: 0.5rem; }
+
+/* ---- Stat band (lead findings with these) ---- */
+.stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; background: var(--line);
+         border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
+.stat { background: var(--paper); padding: 1.3rem 1.3rem; }
+.stat .num { font-family: var(--mono); font-weight: 600; font-size: clamp(1.6rem, 4vw, 2.2rem);
+             letter-spacing: -0.03em; font-variant-numeric: tabular-nums; }
+.stat .num.crit { color: var(--critical); } .stat .num.watch { color: var(--watch); }
+.stat .num.ok { color: var(--healthy); } .stat .num.accent { color: var(--teal); }
+.stat .lbl { color: var(--ink-soft); font-size: 0.84rem; margin-top: 0.4rem; line-height: 1.35; }
+@media (max-width: 680px) { .stats { grid-template-columns: repeat(2, 1fr); } }
+
+/* ---- Tables ---- */
+.tbl-scroll { overflow-x: auto; border: 1px solid var(--line); border-radius: 10px; }
+table.tbl { width: 100%; border-collapse: collapse; font-size: 0.92rem; background: var(--paper); }
+table.tbl th { text-align: left; font-size: 0.66rem; letter-spacing: 0.08em; text-transform: uppercase;
+               color: var(--ink-soft); font-weight: 700; padding: 0.7rem 1rem; background: var(--surface);
+               border-bottom: 1px solid var(--line-strong); white-space: nowrap; }
+table.tbl td { padding: 0.7rem 1rem; border-bottom: 1px solid var(--line); vertical-align: top; }
+table.tbl tr:last-child td { border-bottom: none; }
+table.tbl td.mono, table.tbl td.num { font-family: var(--mono); font-size: 0.86rem; font-variant-numeric: tabular-nums; }
+
+/* ---- Cards / grid ---- */
+.grid { display: grid; gap: 1rem; }
+.grid.two { grid-template-columns: repeat(2, 1fr); }
+.grid.three { grid-template-columns: repeat(3, 1fr); }
+@media (max-width: 720px) { .grid.two, .grid.three { grid-template-columns: 1fr; } }
+.card { background: var(--paper); border: 1px solid var(--line); border-radius: 12px; padding: 1.3rem 1.4rem; }
+.card .kicker { font-family: var(--mono); font-size: 0.72rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--teal); }
+.card h3 { margin-top: 0.4rem; font-size: 1.05rem; }
+.card p { color: var(--ink-soft); font-size: 0.94rem; margin-top: 0.45rem; }
+
+/* ---- Callout (key takeaway / honesty note) ---- */
+.callout { background: var(--ground); color: var(--on-dark); border-radius: 14px; padding: 1.5rem 1.7rem; }
+.callout .eyebrow { color: var(--teal-bright); }
+.callout p { margin-top: 0.7rem; color: var(--on-dark-soft); max-width: 64ch; }
+.callout b { color: #fff; }
+
+/* ---- Note (caveats / assumptions) ---- */
+.note { background: var(--paper); border: 1px solid var(--line); border-left: 3px solid var(--watch);
+        border-radius: 8px; padding: 1rem 1.2rem; color: var(--ink-soft); font-size: 0.94rem; }
+.note b { color: var(--ink); }
+.note.critical { border-left-color: var(--critical); }
+.note.teal { border-left-color: var(--teal); }
+
+/* ---- Blockquote ---- */
+blockquote { border-left: 3px solid var(--teal); padding: 0.3rem 0 0.3rem 1.3rem; margin: 1.4rem 0;
+             font-size: 1.1rem; line-height: 1.55; color: var(--ink); }
+
+/* ---- Figures ---- */
+figure.fig { margin: 1.4rem 0 0; }
+figure.fig img { width: 100%; height: auto; border: 1px solid var(--line); border-radius: 10px; background: var(--paper); }
+figure.fig figcaption { color: var(--ink-soft); font-size: 0.85rem; margin-top: 0.6rem; line-height: 1.45; }
+figure.fig figcaption b { color: var(--ink); }
+
+/* ---- Severity pills ---- */
+.pill { display: inline-flex; align-items: center; gap: 0.4rem; font-size: 0.76rem; font-weight: 600;
+        padding: 0.2rem 0.6rem; border-radius: 999px; white-space: nowrap; }
+.pill::before { content: ""; width: 7px; height: 7px; border-radius: 50%; }
+.pill.crit { background: rgba(214,69,69,0.12); color: var(--critical); } .pill.crit::before { background: var(--critical); }
+.pill.watch { background: rgba(198,127,20,0.14); color: #a86a10; } .pill.watch::before { background: var(--watch); }
+.pill.ok { background: rgba(31,158,120,0.12); color: var(--healthy); } .pill.ok::before { background: var(--healthy); }
+
+/* ---- Code ---- */
+pre { background: #0b2b31; color: #d7ecec; border-radius: 10px; padding: 1rem 1.2rem; overflow-x: auto;
+      font-family: var(--mono); font-size: 0.85rem; line-height: 1.5; }
+:not(pre) > code { font-family: var(--mono); font-size: 0.88em; background: var(--accent, #E1EDED);
+                   padding: 0.1rem 0.35rem; border-radius: 4px; color: #0b3a40; }
+
+/* ---- Lists ---- */
+.section ul, .section ol { padding-left: 1.2rem; margin: 0.8rem 0; display: flex; flex-direction: column; gap: 0.45rem; }
+ul.checks { list-style: none; padding: 0; }
+ul.checks li { position: relative; padding-left: 1.6rem; }
+ul.checks li::before { content: "✓"; position: absolute; left: 0; color: var(--teal); font-weight: 700; }
+
+/* ---- Footer disclaimer (required on every report) ---- */
+.footer { background: var(--ground); color: var(--on-dark-soft); padding-block: 1.6rem; font-size: 0.8rem; }
+.footer .wrap { display: flex; flex-direction: column; gap: 0.35rem; }
+.footer b { color: var(--on-dark); }
+
+@media print {
+  body { background: #fff; }
+  .cover, .callout, .footer { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .section { break-inside: avoid; }
+}

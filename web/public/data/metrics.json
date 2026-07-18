@@ -1,0 +1,15 @@
+{
+  "prevalence_test": 0.01263157894736842,
+  "prauc::XGBoost (calibrated)": 0.4794,
+  "prauc::Rolling z-score alarm": 0.2019,
+  "prauc::IsolationForest": 0.0739,
+  "prauc::Rank by machine age": 0.0264,
+  "rocauc::XGBoost": 0.9406,
+  "precision_at_20": 0.2278,
+  "recall_at_20": 0.7785,
+  "brier": 0.00902,
+  "best_threshold_ratio100": 0.01,
+  "median_lead_days": 3.0,
+  "intercepted_at_best_t": 45,
+  "test_positives": 54
+}

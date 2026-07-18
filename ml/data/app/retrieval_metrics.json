@@ -1,0 +1,275 @@
+{
+  "corpus": {
+    "corrective_tickets_indexed": 440,
+    "vocabulary_terms": 73,
+    "components": [
+      "cold_head",
+      "detector_array",
+      "gantry_bearing",
+      "generator",
+      "gradient_coil",
+      "rf_amplifier",
+      "xray_tube"
+    ],
+    "index_bytes_approx": 18708
+  },
+  "leave_one_out_template_symptoms": {
+    "component_precision_at_1": 1.0,
+    "component_precision_at_3": 1.0,
+    "caveat": "Flattering by construction. The generator draws symptoms from a small template vocabulary, so a held-out symptom is often a near-literal match for another ticket. This measures the synthetic corpus, not the retriever."
+  },
+  "held_out_paraphrases": {
+    "n_queries": 22,
+    "component_precision_at_1": 0.636,
+    "component_precision_at_3": 0.636,
+    "component_accuracy_top10_vote": 0.682,
+    "majority_class_baseline": 0.452,
+    "out_of_vocabulary_queries": 1,
+    "note": "Queries hand-written in words that appear nowhere in the template vocabulary. This is the number to trust, and the one that predicts how lexical retrieval would behave against real engineer shorthand.",
+    "failure_mode": "Every miss is lexical, not conceptual: 'grinding noise when it spins' retrieves 'detector noise high' because they share the token 'noise', while the correct ticket says 'bearing noise during rotation'. TF-IDF has no notion that grinding and bearing are related. This is the concrete argument for sentence embeddings, and it is the roadmap.",
+    "detail": [
+      {
+        "query": "helium is boiling off way too quickly",
+        "expected": "cold_head",
+        "predicted_top1": "cold_head",
+        "predicted_vote": "cold_head",
+        "top_similarity": 0.359,
+        "hit_at_1": true,
+        "hit_at_3": true,
+        "hit_vote": true,
+        "out_of_vocabulary": false
+      },
+      {
+        "query": "cryogen levels keep falling overnight",
+        "expected": "cold_head",
+        "predicted_top1": null,
+        "predicted_vote": null,
+        "top_similarity": 0.0,
+        "hit_at_1": false,
+        "hit_at_3": false,
+        "hit_vote": false,
+        "out_of_vocabulary": true
+      },
+      {
+        "query": "cold head compressor is overheating",
+        "expected": "cold_head",
+        "predicted_top1": "gradient_coil",
+        "predicted_vote": "gradient_coil",
+        "top_similarity": 0.486,
+        "hit_at_1": false,
+        "hit_at_3": false,
+        "hit_vote": false,
+        "out_of_vocabulary": false
+      },
+      {
+        "query": "magnet is losing coolant fast",
+        "expected": "cold_head",
+        "predicted_top1": "cold_head",
+        "predicted_vote": "cold_head",
+        "top_similarity": 0.5,
+        "hit_at_1": true,
+        "hit_at_3": true,
+        "hit_vote": true,
+        "out_of_vocabulary": false
+      },
+      {
+        "query": "scanner makes a grinding noise when it spins",
+        "expected": "gantry_bearing",
+        "predicted_top1": "detector_array",
+        "predicted_vote": "detector_array",
+        "top_similarity": 0.473,
+        "hit_at_1": false,
+        "hit_at_3": false,
+        "hit_vote": false,
+        "out_of_vocabulary": false
+      },
+      {
+        "query": "loud rumble from the rotating assembly",
+        "expected": "gantry_bearing",
+        "predicted_top1": "detector_array",
+        "predicted_vote": "detector_array",
+        "top_similarity": 0.492,
+        "hit_at_1": false,
+        "hit_at_3": false,
+        "hit_vote": false,
+        "out_of_vocabulary": false
+      },
+      {
+        "query": "gantry wobbles and rotation is not smooth",
+        "expected": "gantry_bearing",
+        "predicted_top1": "gantry_bearing",
+        "predicted_vote": "gantry_bearing",
+        "top_similarity": 0.451,
+        "hit_at_1": true,
+        "hit_at_3": true,
+        "hit_vote": true,
+        "out_of_vocabulary": false
+      },
+      {
+        "query": "tube is arcing more than usual",
+        "expected": "xray_tube",
+        "predicted_top1": "xray_tube",
+        "predicted_vote": "xray_tube",
+        "top_similarity": 0.455,
+        "hit_at_1": true,
+        "hit_at_3": true,
+        "hit_vote": true,
+        "out_of_vocabulary": false
+      },
+      {
+        "query": "we are seeing spits and arc faults on exposure",
+        "expected": "xray_tube",
+        "predicted_top1": "xray_tube",
+        "predicted_vote": "xray_tube",
+        "top_similarity": 0.565,
+        "hit_at_1": true,
+        "hit_at_3": true,
+        "hit_vote": true,
+        "out_of_vocabulary": false
+      },
+      {
+        "query": "anode current keeps jumping around",
+        "expected": "xray_tube",
+        "predicted_top1": "xray_tube",
+        "predicted_vote": "xray_tube",
+        "top_similarity": 0.669,
+        "hit_at_1": true,
+        "hit_at_3": true,
+        "hit_vote": true,
+        "out_of_vocabulary": false
+      },
+      {
+        "query": "tube is close to end of life",
+        "expected": "xray_tube",
+        "predicted_top1": "xray_tube",
+        "predicted_vote": "xray_tube",
+        "top_similarity": 0.492,
+        "hit_at_1": true,
+        "hit_at_3": true,
+        "hit_vote": true,
+        "out_of_vocabulary": false
+      },
+      {
+        "query": "dead pixels and dropouts in the detector",
+        "expected": "detector_array",
+        "predicted_top1": "detector_array",
+        "predicted_vote": "detector_array",
+        "top_similarity": 0.692,
+        "hit_at_1": true,
+        "hit_at_3": true,
+        "hit_vote": true,
+        "out_of_vocabulary": false
+      },
+      {
+        "query": "images are noisy, site is complaining",
+        "expected": "detector_array",
+        "predicted_top1": "generator",
+        "predicted_vote": "generator",
+        "top_similarity": 0.443,
+        "hit_at_1": false,
+        "hit_at_3": false,
+        "hit_vote": false,
+        "out_of_vocabulary": false
+      },
+      {
+        "query": "detector channel keeps dropping out",
+        "expected": "detector_array",
+        "predicted_top1": "detector_array",
+        "predicted_vote": "detector_array",
+        "top_similarity": 0.508,
+        "hit_at_1": true,
+        "hit_at_3": true,
+        "hit_vote": true,
+        "out_of_vocabulary": false
+      },
+      {
+        "query": "gradient coil is running hot",
+        "expected": "gradient_coil",
+        "predicted_top1": "cold_head",
+        "predicted_vote": "cold_head",
+        "top_similarity": 0.567,
+        "hit_at_1": false,
+        "hit_at_3": false,
+        "hit_vote": false,
+        "out_of_vocabulary": false
+      },
+      {
+        "query": "cooling loop for the coil has lost pressure",
+        "expected": "gradient_coil",
+        "predicted_top1": "gradient_coil",
+        "predicted_vote": "gradient_coil",
+        "top_similarity": 0.926,
+        "hit_at_1": true,
+        "hit_at_3": true,
+        "hit_vote": true,
+        "out_of_vocabulary": false
+      },
+      {
+        "query": "artifacts in the image, sounds like gradient noise",
+        "expected": "gradient_coil",
+        "predicted_top1": "gradient_coil",
+        "predicted_vote": "gradient_coil",
+        "top_similarity": 0.7,
+        "hit_at_1": true,
+        "hit_at_3": true,
+        "hit_vote": true,
+        "out_of_vocabulary": false
+      },
+      {
+        "query": "rf power keeps drifting up and down",
+        "expected": "rf_amplifier",
+        "predicted_top1": "rf_amplifier",
+        "predicted_vote": "rf_amplifier",
+        "top_similarity": 0.731,
+        "hit_at_1": true,
+        "hit_at_3": true,
+        "hit_vote": true,
+        "out_of_vocabulary": false
+      },
+      {
+        "query": "poor signal to noise, suspect the amplifier",
+        "expected": "rf_amplifier",
+        "predicted_top1": "detector_array",
+        "predicted_vote": "detector_array",
+        "top_similarity": 0.473,
+        "hit_at_1": false,
+        "hit_at_3": false,
+        "hit_vote": false,
+        "out_of_vocabulary": false
+      },
+      {
+        "query": "intermittent fault on the rf stage",
+        "expected": "rf_amplifier",
+        "predicted_top1": "rf_amplifier",
+        "predicted_vote": "rf_amplifier",
+        "top_similarity": 0.852,
+        "hit_at_1": true,
+        "hit_at_3": true,
+        "hit_vote": true,
+        "out_of_vocabulary": false
+      },
+      {
+        "query": "voltage ripple is over the limit",
+        "expected": "generator",
+        "predicted_top1": "generator",
+        "predicted_vote": "generator",
+        "top_similarity": 0.894,
+        "hit_at_1": true,
+        "hit_at_3": true,
+        "hit_vote": true,
+        "out_of_vocabulary": false
+      },
+      {
+        "query": "mains power at the site keeps fluctuating",
+        "expected": "generator",
+        "predicted_top1": "rf_amplifier",
+        "predicted_vote": "generator",
+        "top_similarity": 0.813,
+        "hit_at_1": false,
+        "hit_at_3": false,
+        "hit_vote": true,
+        "out_of_vocabulary": false
+      }
+    ]
+  }
+}

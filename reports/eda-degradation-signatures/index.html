@@ -1,0 +1,91 @@
+<!doctype html>
+<!-- Example EDA report built from design/templates/report-template.html.
+     Serves as the reference for how a Fleet Pulse report should look. -->
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Degradation signatures — Fleet Pulse EDA</title>
+  <link rel="stylesheet" href="../../design/report.css" />
+</head>
+<body>
+
+  <header class="cover">
+    <div class="wrap">
+      <p class="eyebrow">EDA · v1</p>
+      <h1>Do failing scanners warn us first?</h1>
+      <p class="objective"><b>Objective:</b> before building any model, check whether the fleet's sensors actually
+        drift ahead of a failure — because if they don't, there is nothing to predict.</p>
+      <div class="meta">
+        <div><div class="k">Author</div><div class="v">Deekshita</div></div>
+        <div><div class="k">Dataset</div><div class="v">Synthetic fleet · 500 machines</div></div>
+        <div><div class="k">Scope</div><div class="v">MRI cold-head failures</div></div>
+        <div><div class="k">Type</div><div class="v">Exploratory analysis</div></div>
+      </div>
+    </div>
+  </header>
+
+  <section class="section">
+    <div class="wrap">
+      <div class="section-head"><h2><span class="no">01</span> Headline</h2></div>
+      <p class="lead">For MRI cold-head failures, the warning is real and readable: helium level drifts down and
+        compressor temperature creeps up in the weeks before failure — but noisily, and not every time. That is
+        exactly the signal a 7-day risk model can learn, and the noise is why a naïve threshold rule won't do.</p>
+      <div class="stats" style="margin-top:1.3rem">
+        <div class="stat"><div class="num accent">440</div><div class="lbl">failures across the fleet-year</div></div>
+        <div class="stat"><div class="num">7–45 d</div><div class="lbl">precursor drift window before failure</div></div>
+        <div class="stat"><div class="num watch">~15%</div><div class="lbl">failures with no early warning (sudden)</div></div>
+        <div class="stat"><div class="num crit">1.7%</div><div class="lbl">of machine-weeks end in failure</div></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="wrap">
+      <div class="section-head"><h2><span class="no">02</span> The signature</h2></div>
+      <p class="lead">Machine <span class="mono">FP-MRI-0001</span> is representative: through the first half of the
+        year both signals sit in their normal band. In the ~3 weeks before the cold-head failure, helium trends down
+        and compressor temperature trends up together — then resets after the repair.</p>
+      <figure class="fig">
+        <img src="img/sanity_helium_drift.png" alt="Helium level and compressor temperature over a year, with a dashed line at the cold-head failure date" />
+        <figcaption><b>Fig 1.</b> Helium level (top) and compressor temperature (bottom) for FP-MRI-0001; dashed line
+          marks the cold-head failure. The pre-failure drift is visible but sits inside day-to-day noise — a single
+          threshold would either miss it or fire constantly. <b>Synthetic data:</b> real precursors are messier and
+          the lead time more variable.</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="wrap">
+      <div class="section-head"><h2><span class="no">03</span> Why this matters for the model</h2></div>
+      <div class="grid three">
+        <div class="card"><div class="kicker">Signal exists</div><h3>There is something to learn</h3>
+          <p>Drift precedes failure, so rolling-window features on these sensors carry real predictive information.</p></div>
+        <div class="card"><div class="kicker">Noise is real</div><h3>Rules alone fail</h3>
+          <p>The drift lives inside normal variation — separating it needs a model that combines several weak signals.</p></div>
+        <div class="card"><div class="kicker">Not always</div><h3>~15% give no warning</h3>
+          <p>Sudden failures cap achievable recall — and keep the problem honest rather than suspiciously easy.</p></div>
+      </div>
+      <div class="callout" style="margin-top:1.4rem">
+        <p class="eyebrow">Takeaway</p>
+        <p>The data earns a model: a 7-day risk score built on rolling sensor + error-burst features should beat a
+          simple threshold, <b>because the warning is genuine but buried in noise.</b></p>
+      </div>
+      <div class="note" style="margin-top:1.2rem">
+        <b>Limits:</b> this is one representative machine on synthetic data. Precursor windows here are cleaner and
+        more consistent than real telemetry; on a real fleet the first step would be validating these signatures
+        with service engineers.
+      </div>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <div class="wrap">
+      <p><b>Fleet Pulse</b> — Degradation signatures (EDA) · authored for interview preparation</p>
+      <p>Independent portfolio project for interview preparation. Not affiliated with, endorsed by, or using data from Siemens Healthineers. All data is synthetic; machine names, figures, and brand styling are illustrative.</p>
+    </div>
+  </footer>
+
+</body>
+</html>

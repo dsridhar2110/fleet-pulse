@@ -1,0 +1,59 @@
+# Fleet Pulse matplotlib style — clinical petrol/teal.
+# Usage:  plt.style.use("design/fleetpulse.mplstyle")   (path relative to repo root)
+# Keeps every EDA / evaluation chart on-palette and on-brand. See design/DESIGN-SYSTEM.md.
+
+# --- color cycle: teal -> bright -> thermal amber -> slate -> deep petrol ---
+axes.prop_cycle: cycler('color', ['0E8A92', '17B9C0', 'C67F14', '5F8B92', '0A4B52', '1F9E78', 'D64545'])
+
+# --- figure & axes ---
+figure.facecolor: FFFFFF
+figure.figsize: 8.0, 4.8
+figure.dpi: 120
+savefig.dpi: 130
+savefig.bbox: tight
+savefig.facecolor: FFFFFF
+
+axes.facecolor: FFFFFF
+axes.edgecolor: BFD2D2
+axes.linewidth: 1.0
+axes.grid: True
+axes.grid.axis: y
+axes.titlesize: 13
+axes.titleweight: bold
+axes.titlecolor: 0A2226
+axes.titlepad: 10
+axes.labelsize: 10.5
+axes.labelcolor: 47656B
+axes.labelweight: normal
+axes.spines.top: False
+axes.spines.right: False
+axes.prop_cycle: cycler('color', ['0E8A92', '17B9C0', 'C67F14', '5F8B92', '0A4B52', '1F9E78', 'D64545'])
+
+# --- grid ---
+grid.color: D7E4E4
+grid.linewidth: 0.8
+grid.alpha: 0.7
+
+# --- ticks ---
+xtick.color: 47656B
+ytick.color: 47656B
+xtick.labelsize: 9.5
+ytick.labelsize: 9.5
+xtick.direction: out
+ytick.direction: out
+
+# --- lines & markers ---
+lines.linewidth: 1.8
+lines.markersize: 5
+lines.solid_capstyle: round
+
+# --- legend ---
+legend.frameon: False
+legend.fontsize: 9.5
+legend.labelcolor: 0A2226
+
+# --- fonts (system stack; no CDN) ---
+font.family: sans-serif
+font.sans-serif: Helvetica Neue, Helvetica, Arial, DejaVu Sans, sans-serif
+font.size: 10.5
+text.color: 0A2226

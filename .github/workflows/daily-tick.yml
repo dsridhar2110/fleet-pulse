@@ -1,0 +1,34 @@
+name: Daily fleet tick
+
+# Advances the simulated world clock by one day: the daily cron that keeps the
+# living system live. Also runnable on demand (workflow_dispatch) — which is what
+# a hosted "Advance a day" button would trigger.
+
+on:
+  schedule:
+    - cron: "0 6 * * *"      # 06:00 UTC every day
+  workflow_dispatch: {}
+
+concurrency:
+  group: fleet-tick          # never let two ticks overlap
+  cancel-in-progress: false
+
+jobs:
+  tick:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install runtime deps (slim — no Spark needed for the tick)
+        run: pip install numpy pandas scipy scikit-learn xgboost sqlalchemy psycopg2-binary pyyaml
+
+      - name: Advance one day
+        working-directory: ml
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          PYTHONPATH: src
+        run: python -u -m serve.tick --days 1

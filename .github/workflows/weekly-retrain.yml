@@ -1,0 +1,54 @@
+name: Weekly retrain & monitor
+
+# Retrains the live model on all matured outcomes, refreshes the model-evolution
+# / governance record in the database, and commits the updated model bundle so
+# the daily tick scores with the current champion.
+
+on:
+  schedule:
+    - cron: "0 4 * * 1"      # 04:00 UTC every Monday
+  workflow_dispatch: {}
+
+permissions:
+  contents: write            # to commit the refreshed model bundle
+
+jobs:
+  retrain:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install deps
+        run: pip install numpy pandas scipy scikit-learn xgboost sqlalchemy psycopg2-binary pyyaml
+
+      - name: Retrain champion (saves ml/data/app/live_model.pkl)
+        working-directory: ml
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          PYTHONPATH: src
+        run: |
+          python -u -c "from db.engine import get_engine; from models.train_live import train_and_score; \
+            print(train_and_score(get_engine(), write=False, save_model=True)['metrics'])"
+
+      - name: Refresh evolution & governance record
+        working-directory: ml
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          PYTHONPATH: src
+        run: python -u -m serve.retrain_history
+
+      - name: Commit refreshed model bundle
+        run: |
+          git config user.name "fleet-pulse-bot"
+          git config user.email "noreply@users.noreply.github.com"
+          if ! git diff --quiet -- ml/data/app/live_model.pkl; then
+            git add ml/data/app/live_model.pkl
+            git commit -m "chore: weekly model retrain [skip ci]"
+            git push
+          else
+            echo "model bundle unchanged"
+          fi

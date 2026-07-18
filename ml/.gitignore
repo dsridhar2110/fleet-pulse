@@ -1,0 +1,11 @@
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.DS_Store
+data/raw/
+data/features/
+models_artifacts/*.json
+notebooks/.ipynb_checkpoints/
+# committed: data/sample/ and app artifacts under data/app/
+.env

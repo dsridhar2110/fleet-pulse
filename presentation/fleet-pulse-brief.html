@@ -1,0 +1,328 @@
+<style>
+  :root {
+    --ground: #08262B;
+    --ground-2: #0C343A;
+    --teal: #0E8A92;
+    --teal-bright: #24C9D0;
+    --paper: #FFFFFF;
+    --surface: #F1F6F6;
+    --ink: #0A2226;
+    --ink-soft: #47656B;
+    --line: #D7E4E4;
+    --line-strong: #BFD2D2;
+    --crit: #D64545;
+    --warn: #C67F14;
+    --good: #1F9E78;
+    --on-dark: #E9F4F4;
+    --on-dark-soft: #93B7B9;
+
+    --sans: "Helvetica Neue", Helvetica, Arial, system-ui, sans-serif;
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+
+    --wrap: 940px;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--surface);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 16px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .wrap { width: 100%; max-width: var(--wrap); margin: 0 auto; padding-inline: clamp(1.1rem, 4vw, 2rem); }
+
+  h1, h2, h3 { font-weight: 700; letter-spacing: -0.015em; margin: 0; line-height: 1.15; text-wrap: balance; }
+  p { margin: 0; }
+
+  .mono { font-family: var(--mono); }
+  .tnum { font-variant-numeric: tabular-nums; }
+
+  /* ---- Header band ---- */
+  .head {
+    background: linear-gradient(180deg, var(--ground) 0%, var(--ground-2) 100%);
+    color: var(--on-dark);
+    border-bottom: 3px solid var(--teal);
+  }
+  .head .wrap { padding-block: clamp(2rem, 5vw, 3.2rem); }
+  .head .doclabel { font-family: var(--mono); font-size: 0.72rem; letter-spacing: 0.16em; text-transform: uppercase; color: var(--teal-bright); }
+  .head h1 { font-size: clamp(1.9rem, 4.6vw, 2.9rem); letter-spacing: -0.03em; margin-top: 0.8rem; }
+  .head .obj { color: var(--on-dark); font-size: clamp(1.02rem, 2vw, 1.18rem); max-width: 64ch; margin-top: 1rem; line-height: 1.5; }
+  .head .obj b { color: var(--teal-bright); font-weight: 600; }
+
+  .meta { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.12); border-radius: 10px; overflow: hidden; margin-top: 1.9rem; }
+  @media (max-width: 680px) { .meta { grid-template-columns: repeat(2, 1fr); } }
+  .meta div { background: var(--ground-2); padding: 0.85rem 1rem; }
+  .meta .k { font-size: 0.64rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--on-dark-soft); }
+  .meta .v { font-size: 0.92rem; margin-top: 0.25rem; color: var(--on-dark); font-weight: 600; }
+
+  /* ---- Sections ---- */
+  section { padding-block: clamp(2.4rem, 5vw, 3.4rem); border-bottom: 1px solid var(--line); }
+  section:last-of-type { border-bottom: none; }
+  .sec-title { display: flex; align-items: baseline; gap: 0.8rem; margin-bottom: 1.5rem; }
+  .sec-title .no { font-family: var(--mono); font-size: 0.85rem; color: var(--teal); font-weight: 600; letter-spacing: 0.04em; padding-top: 0.15rem; }
+  .sec-title h2 { font-size: clamp(1.3rem, 3vw, 1.75rem); }
+  .lead { font-size: 1.06rem; max-width: 68ch; }
+  .lead b { font-weight: 700; }
+
+  /* ---- Tables ---- */
+  .tbl-scroll { overflow-x: auto; border: 1px solid var(--line); border-radius: 10px; }
+  table { width: 100%; border-collapse: collapse; font-size: 0.92rem; background: var(--paper); }
+  th { text-align: left; font-size: 0.66rem; letter-spacing: 0.09em; text-transform: uppercase; color: var(--ink-soft); font-weight: 700; padding: 0.7rem 1rem; background: var(--surface); border-bottom: 1px solid var(--line-strong); white-space: nowrap; }
+  td { padding: 0.72rem 1rem; border-bottom: 1px solid var(--line); vertical-align: top; }
+  tr:last-child td { border-bottom: none; }
+  td.mono { font-family: var(--mono); font-size: 0.86rem; }
+  .tnum td, td.tnum { font-variant-numeric: tabular-nums; }
+
+  /* ---- Deliverables list ---- */
+  .deliv { display: flex; flex-direction: column; gap: 0.7rem; }
+  .deliv .row { display: grid; grid-template-columns: 28px 1fr auto; gap: 0.9rem; align-items: start; background: var(--paper); border: 1px solid var(--line); border-radius: 10px; padding: 0.95rem 1.1rem; }
+  .deliv .n { font-family: var(--mono); color: var(--teal); font-weight: 600; font-size: 0.9rem; }
+  .deliv .d .t { font-weight: 700; font-size: 0.98rem; }
+  .deliv .d .s { color: var(--ink-soft); font-size: 0.9rem; margin-top: 0.2rem; }
+  .badge { font-family: var(--mono); font-size: 0.64rem; letter-spacing: 0.06em; text-transform: uppercase; padding: 0.24rem 0.6rem; border-radius: 999px; white-space: nowrap; height: fit-content; }
+  .badge.done { background: rgba(31,158,120,0.14); color: var(--good); }
+  .badge.todo { background: rgba(198,127,20,0.15); color: var(--warn); }
+
+  /* ---- Architecture strip ---- */
+  .arch { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
+  .arch .box { flex: 1 1 150px; background: var(--paper); border: 1px solid var(--line); border-radius: 10px; padding: 0.9rem 1rem; }
+  .arch .box .bl { font-family: var(--mono); font-size: 0.64rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--teal); }
+  .arch .box .bt { font-weight: 700; font-size: 0.95rem; margin-top: 0.25rem; }
+  .arch .box .bs { color: var(--ink-soft); font-size: 0.82rem; margin-top: 0.2rem; }
+  .arch .arw { color: var(--line-strong); font-weight: 700; }
+  @media (max-width: 680px) { .arch .arw { display: none; } }
+
+  /* ---- Plan (day) rows ---- */
+  .plan .daynum { font-family: var(--mono); font-weight: 700; color: var(--teal); white-space: nowrap; }
+  .plan td .deliverable { display: block; font-family: var(--mono); font-size: 0.78rem; color: var(--ink-soft); margin-top: 0.35rem; }
+
+  /* ---- Criteria / bullets ---- */
+  ul.checks { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 0.55rem; }
+  ul.checks li { position: relative; padding-left: 1.7rem; font-size: 0.98rem; }
+  ul.checks li::before { content: "✓"; position: absolute; left: 0; top: -0.05rem; color: var(--teal); font-weight: 700; }
+  ul.plain { margin: 0; padding-left: 1.2rem; display: flex; flex-direction: column; gap: 0.5rem; }
+  ul.plain li { padding-left: 0.2rem; }
+  ul.plain li b { font-weight: 700; }
+
+  .cols2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1.4rem; }
+  @media (max-width: 720px) { .cols2 { grid-template-columns: 1fr; } }
+
+  .note { background: var(--paper); border: 1px solid var(--line); border-left: 3px solid var(--warn); border-radius: 8px; padding: 1rem 1.2rem; font-size: 0.94rem; color: var(--ink-soft); }
+  .note b { color: var(--ink); }
+
+  footer { background: var(--ground); color: var(--on-dark-soft); padding-block: 1.8rem; font-size: 0.8rem; }
+  footer .wrap { display: flex; flex-direction: column; gap: 0.4rem; }
+</style>
+
+<header class="head">
+  <div class="wrap">
+    <p class="doclabel">Project Plan · v1</p>
+    <h1>Fleet Pulse</h1>
+    <p class="obj"><b>Objective:</b> Build a working predictive-maintenance product that scores every scanner in a simulated medical-imaging fleet for 7-day failure risk, and deliver it as a live demo + case study to Siemens Healthineers ahead of Deekshita's Data Scientist interview.</p>
+    <div class="meta">
+      <div><div class="k">Target role</div><div class="v">Data Scientist — Customer Service (R&amp;D)</div></div>
+      <div><div class="k">Timeline</div><div class="v">7 days</div></div>
+      <div><div class="k">Deliverable</div><div class="v">Live product + case study</div></div>
+      <div><div class="k">Status</div><div class="v">Engine built · UI pending</div></div>
+    </div>
+  </div>
+</header>
+
+<section>
+  <div class="wrap">
+    <div class="sec-title"><span class="no">01</span><h2>Problem</h2></div>
+    <p class="lead">The role is data science for Siemens Healthineers' <b>service organisation</b> — the team that keeps 250,000+ imaging machines (MRI, CT, X-ray) running worldwide. When a scanner fails unexpectedly, a hospital cancels 20–40 scans that day (~$27k lost), and Siemens dispatches an engineer reactively. The team's job is to read the machines' own logs and predict failures <b>before</b> they happen. Fleet Pulse builds exactly that capability, end to end, on realistic synthetic data.</p>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="sec-title"><span class="no">02</span><h2>Deliverables</h2></div>
+    <div class="deliv">
+      <div class="row"><span class="n">1</span><div class="d"><div class="t">ML engine</div><div class="s">Synthetic fleet generator · PySpark feature pipeline · 7-day failure-risk model · evaluation suite.</div></div><span class="badge done">Built</span></div>
+      <div class="row"><span class="n">2</span><div class="d"><div class="t">Web product — “Service Command Center”</div><div class="s">Next.js + shadcn/ui. Fleet risk overview, machine drill-down, model-evaluation page.</div></div><span class="badge todo">To build</span></div>
+      <div class="row"><span class="n">3</span><div class="d"><div class="t">GenAI assistant</div><div class="s">Retrieval over past tickets + service manuals: “why is this machine alarming, what fixed it last time?”</div></div><span class="badge todo">To build</span></div>
+      <div class="row"><span class="n">4</span><div class="d"><div class="t">Live deployment</div><div class="s">Public Vercel URL, shareable with the recruiter.</div></div><span class="badge todo">To build</span></div>
+      <div class="row"><span class="n">5</span><div class="d"><div class="t">Case study + walkthrough</div><div class="s">4–6 page PDF (problem, approach, honest limits, questions for the team) + 3-minute recorded demo.</div></div><span class="badge todo">To build</span></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="sec-title"><span class="no">03</span><h2>How it works</h2></div>
+    <p class="lead" style="margin-bottom:1.4rem">Python engine produces the intelligence; it exports clean JSON; the Next.js product renders it. The local tools are deliberate 1:1 stand-ins for the cloud stack named in the job description.</p>
+    <div class="arch">
+      <div class="box"><div class="bl">Engine</div><div class="bt">Python + PySpark</div><div class="bs">generate data, build features, train model</div></div>
+      <span class="arw">→</span>
+      <div class="box"><div class="bl">Handoff</div><div class="bt">JSON artifacts</div><div class="bs">scores, worklist, per-machine detail, metrics</div></div>
+      <span class="arw">→</span>
+      <div class="box"><div class="bl">Product</div><div class="bt">Next.js + shadcn</div><div class="bs">command center UI</div></div>
+      <span class="arw">→</span>
+      <div class="box"><div class="bl">Ship</div><div class="bt">Vercel</div><div class="bs">live public URL</div></div>
+    </div>
+    <div class="tbl-scroll" style="margin-top:1.4rem">
+      <table>
+        <thead><tr><th>Job description asks for</th><th>Fleet Pulse uses</th><th>Why it maps</th></tr></thead>
+        <tbody>
+          <tr><td class="mono">Azure Blob + Parquet</td><td class="mono">Local Parquet lake</td><td>Same file format &amp; partition layout; swap is a path change.</td></tr>
+          <tr><td class="mono">Databricks / PySpark</td><td class="mono">PySpark (local)</td><td>Identical code; runs unmodified on a real cluster.</td></tr>
+          <tr><td class="mono">Snowflake / Kusto</td><td class="mono">DuckDB</td><td>Same analytical SQL over columnar data.</td></tr>
+          <tr><td class="mono">NLP / GenAI</td><td class="mono">Embeddings + retrieval</td><td>Same retrieval-augmented pattern.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="sec-title"><span class="no">04</span><h2>Data specification</h2></div>
+    <p class="lead" style="margin-bottom:1.4rem">A simulated fleet built from real failure physics — parts wear out on age &amp; usage curves, and degradation leaks into sensors before failure. Enough structure to learn, kept deliberately hard.</p>
+    <div class="tbl-scroll">
+      <table>
+        <thead><tr><th>Entity</th><th>Volume</th><th>Detail</th></tr></thead>
+        <tbody>
+          <tr><td>Machines</td><td class="mono tnum">500</td><td>CT, MRI, X-ray across 10 countries, install years 2015–2024</td></tr>
+          <tr><td>Telemetry</td><td class="mono tnum">~1,041,000 rows</td><td>Daily sensor vitals: helium, temperatures, tube current, vibration</td></tr>
+          <tr><td>Error events</td><td class="mono tnum">323,000</td><td>Mostly benign noise; only certain families precede failure</td></tr>
+          <tr><td>Service tickets</td><td class="mono tnum">1,610</td><td>Free-text engineer notes (deliberately messy/inconsistent)</td></tr>
+          <tr><td>Failures (labels)</td><td class="mono tnum">440</td><td>~1.7% of machine-weeks; 15% give no early warning</td></tr>
+          <tr><td>Feature table</td><td class="mono tnum">24,867 × 226</td><td>One row per machine per week; 226 engineered signals</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="sec-title"><span class="no">05</span><h2>Model specification</h2></div>
+    <div class="cols2">
+      <div>
+        <div class="tbl-scroll">
+          <table>
+            <tbody>
+              <tr><th style="width:42%">Prediction</th><td>Probability a machine fails within 7 days</td></tr>
+              <tr><th>Grain</th><td>One score per machine, per week</td></tr>
+              <tr><th>Model</th><td class="mono">XGBoost</td></tr>
+              <tr><th>Validation</th><td>Time-based split (train past → test future)</td></tr>
+              <tr><th>Leakage control</th><td>Features use only data up to scoring day; asserted by tests</td></tr>
+              <tr><th>Explainability</th><td><span class="mono">SHAP</span> per-machine drivers</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div>
+        <p style="font-size:0.72rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--ink-soft); font-weight:700; margin-bottom:0.7rem">Measured as service decisions, not accuracy</p>
+        <ul class="plain">
+          <li><b>Precision@20</b> — of the 20 machines flagged each week, how many visits pay off.</li>
+          <li><b>Lead time</b> — how many days before failure the alert fires (must be days, not hours).</li>
+          <li><b>Calibration</b> — a 0.6 score genuinely means a 60% chance.</li>
+          <li><b>Cost threshold</b> — alarm tuned so a missed failure (~100× a visit) is weighted correctly.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="sec-title"><span class="no">06</span><h2>7-day plan</h2></div>
+    <div class="tbl-scroll">
+      <table class="plan">
+        <thead><tr><th>Day</th><th>Focus</th><th>Tasks &amp; deliverable</th><th>Status</th></tr></thead>
+        <tbody>
+          <tr>
+            <td class="daynum">Day 1</td><td>Engine</td>
+            <td>Synthetic fleet + feature pipeline + failure-risk model + evaluation.<span class="deliverable">→ Working model, leakage tests passing</span></td>
+            <td><span class="badge done">Done</span></td>
+          </tr>
+          <tr>
+            <td class="daynum">Day 2</td><td>Product shell</td>
+            <td>Next.js app in Siemens-inspired theme; fleet overview with KPIs and risk-ranked table + filters.<span class="deliverable">→ Live fleet dashboard on real model output</span></td>
+            <td><span class="badge todo">Next</span></td>
+          </tr>
+          <tr>
+            <td class="daynum">Day 3</td><td>Drill-down</td>
+            <td>Single-machine page: vital-sign charts with failure marker, risk drivers, ticket history.<span class="deliverable">→ Machine detail view</span></td>
+            <td><span class="badge todo">Planned</span></td>
+          </tr>
+          <tr>
+            <td class="daynum">Day 4</td><td>Proof</td>
+            <td>Model-evaluation page: precision, lead time, cost trade-off as clean visuals.<span class="deliverable">→ Evaluation page</span></td>
+            <td><span class="badge todo">Planned</span></td>
+          </tr>
+          <tr>
+            <td class="daynum">Day 5</td><td>Assistant + deploy</td>
+            <td>GenAI assistant over tickets/manuals; deploy full product to Vercel.<span class="deliverable">→ Live public URL</span></td>
+            <td><span class="badge todo">Planned</span></td>
+          </tr>
+          <tr>
+            <td class="daynum">Day 6</td><td>Case study</td>
+            <td>Write case-study PDF; record 3-min walkthrough; send package to recruiter.<span class="deliverable">→ PDF + demo link sent</span></td>
+            <td><span class="badge todo">Planned</span></td>
+          </tr>
+          <tr>
+            <td class="daynum">Day 7</td><td>Buffer</td>
+            <td>Harden, fix, rehearse the walkthrough and hard-question answers.<span class="deliverable">→ Rehearsed &amp; ready</span></td>
+            <td><span class="badge todo">Planned</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="sec-title"><span class="no">07</span><h2>Definition of done</h2></div>
+    <ul class="checks">
+      <li>Live product URL loads the fleet command center, machine drill-down, and model page.</li>
+      <li>Model scores every machine weekly; leakage tests pass; failure rate and metrics in the disclosed band.</li>
+      <li>GenAI assistant answers a service question from ticket/manual history.</li>
+      <li>Case-study PDF + 3-minute walkthrough recorded and sent to the recruiter before the interview.</li>
+      <li>Deekshita has rehearsed the walkthrough and can defend every technical choice.</li>
+    </ul>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="sec-title"><span class="no">08</span><h2>Explaining it to Deekshita</h2></div>
+    <p class="lead" style="margin-bottom:1.2rem">Lead with the business framing; hand her the technical choices so she owns the interview defense.</p>
+    <ul class="plain">
+      <li><b>The one-liner:</b> “It's data science for their service business — predicting which scanner breaks next. I built a working product so you walk in already speaking their language.”</li>
+      <li><b>The engine is real:</b> failures from Weibull wear-out physics, time-based split, calibrated scores, PR-AUC + precision@k, SHAP explanations, PySpark → XGBoost → DuckDB.</li>
+      <li><b>Her interview line on the synthetic data:</b> “With your real fleet, my first two weeks would be with service engineers finding where my assumptions are wrong.” — humility + domain respect, which the JD explicitly asks for.</li>
+    </ul>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="sec-title"><span class="no">09</span><h2>Decisions — locked</h2></div>
+    <div class="tbl-scroll">
+      <table>
+        <thead><tr><th>Decision</th><th>Locked</th></tr></thead>
+        <tbody>
+          <tr><td style="width:38%">Interview location / posting</td><td><b>Bangalore</b> (Job ID 511928, R&amp;D)</td></tr>
+          <tr><td>GenAI assistant scope</td><td><b>Retrieval-only</b> — answers from ticket/manual history, no live LLM call</td></tr>
+          <tr><td>Delivery tactic</td><td><b>Send ahead</b> — case study + demo link to recruiter 1–2 days before the interview</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <p><b style="color:var(--on-dark)">Fleet Pulse</b> — project plan · Data Scientist (Customer Service, R&amp;D)</p>
+    <p>Independent portfolio project for interview preparation. Not affiliated with or using data from Siemens Healthineers. Figures and names are illustrative.</p>
+  </div>
+</footer>

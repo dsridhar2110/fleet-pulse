@@ -1,0 +1,53 @@
+# Fleet Pulse — fleet & simulation configuration
+# Every number here is a documented simulation choice, not a claim about real fleets.
+
+seed: 42
+
+simulation:
+  start_date: "2025-01-01"
+  end_date: "2025-12-31"
+
+  # Global hazard multiplier. Real annual failure rates for imaging equipment are
+  # lower than simulated here; we upsample event frequency so that ONE year of data
+  # contains enough positives (~1-3% of machine-weeks) to train on. Disclosed in docs.
+  event_rate_multiplier: 2.0
+
+  # Fraction of failures that emit NO precursor signature (sudden failures:
+  # power events, physical damage). Keeps the prediction task honest.
+  sudden_failure_fraction: 0.15
+
+  # Per-machine-year rate of "false precursor" episodes: drift that looks like
+  # degradation but recovers without failure (e.g., transient environmental issue).
+  false_precursor_rate_per_year: 0.6
+
+fleet:
+  n_machines: 500
+  modality_mix:            # fractions must sum to 1
+    CT: 0.45
+    MRI: 0.35
+    XRAY: 0.20
+  install_year_range: [2015, 2024]   # staggered ages => wear-out hazard has signal
+  countries:               # weights ~ installed-base intuition, not real data
+    DE: 0.14
+    US: 0.22
+    GB: 0.10
+    FR: 0.08
+    IN: 0.12
+    JP: 0.08
+    BR: 0.07
+    AU: 0.05
+    ES: 0.06
+    CN: 0.08
+
+data_quality:
+  missing_day_rate: 0.03        # connectivity gaps: machine offline for reporting
+  flaky_machine_fraction: 0.05  # chronically bad reporters
+  flaky_missing_day_rate: 0.15
+  calibration_offset_sigma: 0.5 # per-machine baseline offset, in units of sensor noise sigma
+
+maintenance:
+  scheduled_interval_days: 180      # preventive maintenance cadence
+  scheduled_jitter_days: 30
+  scheduled_age_improvement: 0.10   # PM reduces component effective age by 10%
+  corrective_age_reset: 0.20        # corrective repair resets component age to 20% (imperfect repair)
+  corrective_downtime_days: [1, 4]  # uniform range

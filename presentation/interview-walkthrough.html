@@ -1,0 +1,763 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>FleetPulse — Interview Walkthrough</title>
+<style>
+  :root{
+    --ground:#08262B; --ground2:#0C343A; --teal:#0E8A92; --teal-bright:#24C9D0;
+    --paper:#fff; --surface:#F1F6F6; --ink:#0A2226; --ink-soft:#47656B;
+    --line:#D7E4E4; --amber:#C67F14; --amber-soft:#FFF7E8; --crit:#D64545; --good:#1F9E78;
+    --sans:"Helvetica Neue",Helvetica,Arial,system-ui,sans-serif;
+    --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--surface);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.6}
+  .wrap{max-width:900px;margin:0 auto;padding:0 clamp(1rem,4vw,2rem)}
+  h1,h2,h3{letter-spacing:-.015em;line-height:1.2;margin:0}
+  p{margin:0}
+  .mono{font-family:var(--mono)}
+  code{font-family:var(--mono);font-size:.85em;background:rgba(14,138,146,.09);padding:.1em .35em;border-radius:4px}
+
+  .hero{background:linear-gradient(160deg,var(--ground) 0%,var(--ground2) 55%,#0E5560 100%);color:#E9F4F4;border-bottom:3px solid var(--teal)}
+  .hero .wrap{padding:3.2rem 0 2.6rem}
+  .hero .kicker{font-family:var(--mono);font-size:.72rem;letter-spacing:.16em;text-transform:uppercase;color:var(--teal-bright)}
+  .hero h1{font-size:clamp(1.9rem,4.5vw,2.8rem);margin-top:.7rem}
+  .hero p.sub{margin-top:.9rem;max-width:62ch;color:#C9DFE0;font-size:1.05rem}
+  .hero .btns{margin-top:1.5rem;display:flex;gap:.7rem;flex-wrap:wrap}
+  .hero a{display:inline-block;text-decoration:none;font-weight:700;font-size:.92rem;padding:.6rem 1.1rem;border-radius:9px}
+  .hero a.primary{background:var(--teal-bright);color:var(--ground)}
+  .hero a.ghost{border:1px solid rgba(233,244,244,.4);color:#E9F4F4}
+
+  nav.jump{position:sticky;top:0;z-index:50;background:rgba(241,246,246,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+  nav.jump .wrap{display:flex;gap:.4rem;overflow-x:auto;padding:.55rem 1rem;scrollbar-width:thin}
+  nav.jump a{white-space:nowrap;text-decoration:none;font-size:.82rem;font-weight:700;color:var(--ink-soft);border:1px solid var(--line);background:var(--paper);border-radius:999px;padding:.35rem .85rem}
+  nav.jump a:hover{color:var(--teal);border-color:var(--teal)}
+  nav.jump a.hot{background:var(--ground);color:#E9F4F4;border-color:var(--ground)}
+  section{padding:2.6rem 0;border-bottom:1px solid var(--line);scroll-margin-top:3.4rem}
+  .eyebrow{font-family:var(--mono);font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;color:var(--teal);margin-bottom:.4rem}
+  h2{font-size:1.55rem;margin-bottom:1rem}
+  .lead{max-width:68ch}
+
+  .step{display:grid;grid-template-columns:34px 1fr;gap:.9rem;background:var(--paper);border:1px solid var(--line);border-radius:11px;padding:1rem 1.15rem;margin-top:.7rem}
+  .step .n{font-family:var(--mono);font-weight:800;color:var(--teal);font-size:1rem;padding-top:.1rem}
+  .step b.term{color:var(--teal)}
+  .step .t{font-weight:700}
+  .step p{color:#233} .step .why{color:var(--ink-soft);font-size:.92rem;margin-top:.3rem}
+
+  .say{background:var(--paper);border:1px solid var(--line);border-radius:11px;padding:1.1rem 1.2rem;margin-top:.8rem}
+  .say .q{font-weight:800;font-size:1rem}
+  .say .a{border-left:3px solid var(--teal);background:rgba(14,138,146,.06);padding:.7rem 1rem;border-radius:0 9px 9px 0;margin-top:.6rem}
+  .say .terms{font-family:var(--mono);font-size:.78rem;color:var(--ink-soft);margin-top:.5rem}
+
+  .understand{background:var(--amber-soft);border-left:3px solid var(--amber);padding:.7rem 1rem;border-radius:0 9px 9px 0;margin-top:.6rem;font-size:.95rem}
+  .understand b{color:#7C4A03}
+
+  .tabs{display:flex;gap:.5rem;flex-wrap:wrap;margin:1.1rem 0}
+  .tabs button{font-family:var(--sans);font-size:.9rem;font-weight:700;color:var(--ink-soft);background:var(--paper);border:1px solid var(--line);border-radius:999px;padding:.5rem 1.05rem;cursor:pointer}
+  .tabs button.active{background:var(--ground);color:#E9F4F4;border-color:var(--ground)}
+  .tabpanel{display:none}
+  .tabpanel.active{display:block}
+  .panel{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:1.3rem 1.4rem}
+
+  table{width:100%;border-collapse:collapse;font-size:.92rem;background:var(--paper);border:1px solid var(--line);border-radius:10px;overflow:hidden;margin-top:.8rem}
+  th{text-align:left;font-size:.68rem;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-soft);padding:.6rem .9rem;background:var(--surface);border-bottom:1px solid var(--line)}
+  td{padding:.6rem .9rem;border-bottom:1px solid var(--line);vertical-align:top}
+  tr:last-child td{border-bottom:none}
+  .tblwrap{overflow-x:auto}
+
+  details{background:var(--paper);border:1px solid var(--line);border-radius:11px;margin-top:.6rem;overflow:hidden}
+  summary{cursor:pointer;padding:.85rem 1.1rem;font-weight:700;list-style:none}
+  summary::-webkit-details-marker{display:none}
+  summary::before{content:"▸ ";color:var(--teal)}
+  details[open] summary::before{content:"▾ "}
+  details .body{padding:0 1.1rem 1rem}
+  details .body .land{font-size:.85rem;color:var(--ink-soft);margin-top:.5rem}
+
+  .callout{background:var(--ground);color:#E9F4F4;border-radius:12px;padding:1.2rem 1.4rem;margin-top:1.2rem}
+  .callout b{color:var(--teal-bright)}
+  .footer{padding:1.6rem 0 3rem;color:var(--ink-soft);font-size:.8rem}
+
+  /* breadcrumb study path */
+  .crumbs{display:flex;flex-wrap:wrap;align-items:center;gap:.45rem;margin-top:.8rem}
+  .crumbs .c{background:var(--paper);border:1px solid var(--line);border-radius:999px;padding:.4rem .85rem;font-size:.85rem}
+  .crumbs .c b{color:var(--teal)}
+  .crumbs .c .where{display:block;font-family:var(--mono);font-size:.68rem;color:var(--ink-soft);margin-top:.1rem}
+  .crumbs .arr{color:var(--teal);font-weight:800}
+  .modtag{display:inline-block;font-family:var(--mono);font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;color:#fff;background:var(--teal);border-radius:6px;padding:.2rem .6rem;margin-top:1.4rem}
+  .sayit{font-weight:800;color:var(--teal);font-size:.72rem;text-transform:uppercase;letter-spacing:.09em;margin-bottom:.2rem}
+  .jargon{font-family:var(--mono);font-size:.75rem;color:var(--ink-soft);margin-top:.5rem;background:rgba(14,138,146,.07);padding:.35rem .65rem;border-radius:7px}
+  .poke td:first-child{font-weight:700;color:var(--ink);width:42%}
+  @media print{.hero a{display:none}details{page-break-inside:avoid}details:not([open]) .body{display:block!important}}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap">
+    <p class="kicker">Interview walkthrough · FleetPulse · v3 (Modules 1–3 + cloud slice)</p>
+    <h1>FleetPulse — I taught machine logs to pay for themselves</h1>
+    <p class="sub">A predictive-maintenance product for a simulated fleet of 500 hospital scanners:
+      raw logs → a weekly "inspect these 20 machines" list → an honest dollar value on every decision —
+      built locally, then re-run on real Databricks and Snowflake.</p>
+    <div class="btns">
+      <a class="primary" href="solution-blueprint.html">Open the solution blueprint →</a>
+      <a class="ghost" href="../reports/data-model-eda/index.html">Data model &amp; EDA report</a>
+    </div>
+  </div>
+</header>
+
+<nav class="jump">
+  <div class="wrap">
+    <a href="#path">Study path</a>
+    <a class="hot" href="#m1">Module 1</a>
+    <a class="hot" href="#m2">Module 2</a>
+    <a class="hot" href="#m3">Module 3</a>
+    <a href="#cloud">Cloud (Databricks/Snowflake)</a>
+    <a href="#spoken">Spoken answers</a>
+    <a href="#numbers">The numbers</a>
+    <a href="#qa">Q&amp;A drill</a>
+    <a href="#siemens">Siemens bridge</a>
+  </div>
+</nav>
+
+<!-- ============ 0. STUDY PATH (BREADCRUMBS) ============ -->
+<section id="path">
+  <div class="wrap">
+    <p class="eyebrow">Start here · Your study path</p>
+    <h2>Two trails — follow the crumbs in order</h2>
+
+    <span class="modtag">Module 1 · failure prediction + money</span>
+    <div class="crumbs">
+      <span class="c"><b>1. The story</b><span class="where">this page · §01–02</span></span><span class="arr">→</span>
+      <span class="c"><b>2. The six tables</b><span class="where">reports/data-model-eda</span></span><span class="arr">→</span>
+      <span class="c"><b>3. Touch the data</b><span class="where">eda_raw_data.ipynb</span></span><span class="arr">→</span>
+      <span class="c"><b>4. The money math</b><span class="where">impact_engine.ipynb</span></span><span class="arr">→</span>
+      <span class="c"><b>5. The cloud tabs</b><span class="where">this page · §03 + spoken versions</span></span><span class="arr">→</span>
+      <span class="c"><b>6. Numbers cold</b><span class="where">§06: recall@20 · PR-AUC · calibration · $2.66M</span></span><span class="arr">→</span>
+      <span class="c"><b>7. Q&amp;A drill</b><span class="where">§08 (leakage, XGBoost-why, what-broke)</span></span>
+    </div>
+
+    <span class="modtag">Module 2 · anomaly detection (Keras)</span>
+    <div class="crumbs">
+      <span class="c"><b>1. The deep dive</b><span class="where">this page · §04 (photocopier → verdict)</span></span><span class="arr">→</span>
+      <span class="c"><b>2. Run it yourself</b><span class="where">autoencoder_anomaly.ipynb — safe, no TF, Run All</span></span><span class="arr">→</span>
+      <span class="c"><b>3. Where it trained</b><span class="where">databricks_autoencoder.ipynb + evidence/ screenshots</span></span><span class="arr">→</span>
+      <span class="c"><b>4. The honest number</b><span class="where">§06: 0.111 card — why it lost, say it proudly</span></span><span class="arr">→</span>
+      <span class="c"><b>5. Q&amp;A drill</b><span class="where">§08: "your model LOST — why show that?"</span></span>
+    </div>
+
+    <p style="margin-top:1rem;color:var(--ink-soft);font-size:.9rem"><b>Self-check before moving on</b> — you should be
+      able to answer these without looking: <i>What does recall@20 = 0.78 mean in one sentence? Why is accuracy banned
+      at 1.7% prevalence? Why calibrate probabilities? Why did Databricks get 6 files and Snowflake 4? What's an
+      autoencoder's bottleneck for? Why train it on healthy weeks only? Why did it lose to the z-score alarm — and
+      what's the fix you'd try first?</i></p>
+  </div>
+</section>
+
+<!-- ============ 1. WHAT THIS PROJECT IS FOR ============ -->
+<section>
+  <div class="wrap">
+    <p class="eyebrow">01 · What this project is for</p>
+    <h2>The problem, in one breath</h2>
+    <p class="lead">Hospitals run MRI and CT scanners that <b>must not fail by surprise</b> — a surprise
+      failure cancels a day of patients and costs roughly <b>$27,000 per day</b> of downtime, while sending an
+      engineer to check a machine costs about <b>$800</b>. So missing a failure is ~100× worse than a wasted
+      visit. The machines constantly write logs — sensor readings, error codes, service notes — but nobody can
+      read a million rows a week. <b>FleetPulse reads them instead</b>, and every Monday hands the service team a
+      ranked list: "these 20 machines are most likely to fail in the next 7 days — go look at them first."
+      It's a miniature of what Siemens Healthineers' Customer Service organisation does with its real
+      installed base (Smart Remote Services / Guardian).</p>
+  </div>
+</section>
+
+<!-- ============ 2. THE WHOLE THING, SIMPLY ============ -->
+<section id="m1">
+  <div class="wrap">
+    <p class="eyebrow">02 · The whole thing, simply</p>
+    <h2>What I built, step by step</h2>
+
+    <div class="step"><span class="n">1</span><div>
+      <p class="t">I generated the data myself — honestly.</p>
+      <p>There's no public dataset of 500 hospital scanners, so I wrote a <b class="term">simulator</b>: each machine's
+        components age and wear out (<b class="term">Weibull failure curves</b> — the standard "things wear out" math),
+        and before most failures the sensors drift for weeks (helium slowly dropping, vibration rising). 15% of
+        failures give <i>no warning at all</i>, so the problem stays honestly hard.</p>
+      <p class="why">Why it matters: I can defend every data assumption, because I chose each one to copy a known real-world behaviour.</p>
+    </div></div>
+
+    <div class="step"><span class="n">2</span><div>
+      <p class="t">Six tables, one key.</p>
+      <p>A <b class="term">star schema</b>: <code>fleet_master</code> (the 500 machines) in the middle, and five event
+        tables — <code>telemetry</code> (1M daily sensor readings), <code>error_events</code> (323K error codes),
+        <code>failures</code> (440 — the answer key), <code>maintenance</code> (1,454 visits), <code>tickets</code>
+        (1,610 engineer notes) — all joining on <code>machine_id</code>. Stored as <b class="term">Parquet</b>,
+        the compressed column-based file format every big-data tool speaks.</p>
+    </div></div>
+
+    <div class="step"><span class="n">3</span><div>
+      <p class="t">PySpark turned events into features.</p>
+      <p>For every machine, every Monday, I computed 226 numbers describing "what the last 7/14/30 days looked
+        like": rolling averages, <b class="term">trend slopes</b>, error-burst counts, days since maintenance. Rule
+        number one: a feature may only use data <b>from before that Monday</b> — never after. A unit test
+        (<code>test_no_leakage.py</code>) enforces it. That's <b class="term">leakage prevention</b> — the #1 way ML
+        projects secretly cheat, and mine provably doesn't.</p>
+    </div></div>
+
+    <div class="step"><span class="n">4</span><div>
+      <p class="t">XGBoost predicts; calibration makes it honest.</p>
+      <p><b class="term">XGBoost</b> (a gradient-boosted tree model — great on tabular data, handles missing values,
+        explainable) outputs each machine's <b>probability of failing within 7 days</b>. I then applied
+        <b class="term">Platt calibration</b> so a score of 0.40 really behaves like a 40% chance — which is what lets
+        me do money-math with it later.</p>
+      <p class="why">I chose XGBoost over deep learning on purpose: few failure examples, tabular features, and the service team needs to know <i>why</i> a machine is flagged (SHAP explains each prediction).</p>
+    </div></div>
+
+    <div class="step"><span class="n">5</span><div>
+      <p class="t">I graded it the honest way.</p>
+      <p>Failures are only 1.7% of machine-weeks, so "accuracy" is a lie (a model saying "never fails" is 98% accurate
+        and 100% useless). I report <b class="term">PR-AUC</b> (0.48 vs 0.013 random), <b class="term">recall@20</b>
+        (a weekly top-20 list catches <b>78%</b> of failures), precision@20 (0.23), and a median <b>3-day warning</b>.
+        Time-based split: trained on Jan–Aug, tested on Nov–Dec it had never seen.</p>
+    </div></div>
+
+    <div class="step"><span class="n">6</span><div>
+      <p class="t">The Business Impact Engine turned scores into dollars.</p>
+      <p>Expected loss per machine = probability × typical downtime × $27k. Then a <b class="term">backtest</b> —
+        replay the held-out Nov–Dec weeks like a diary and count what the top-20 list would have caught:
+        <b>41 of 54 failures, 104 downtime days avoided, ≈ $2.66M net savings (~78% of the do-nothing downtime bill)</b>.
+        Cross-checked: 41/54 ≈ the model's recall@20 of 0.78 — money story and metric story agree.</p>
+    </div></div>
+
+    <div class="step"><span class="n">7</span><div>
+      <p class="t">Then I proved it runs on the real stack.</p>
+      <p>Uploaded the data to <b class="term">Databricks</b> (Free Edition) and ran the same PySpark feature job on a
+        real cluster — identical answer, 24,867 × 226. Loaded the outputs into <b class="term">Snowflake</b> (trial on
+        Azure UK South) and rebuilt the analytics in pure <b class="term">SQL</b> — including recomputing recall@20 in
+        the warehouse. Details in the tabs below.</p>
+    </div></div>
+
+    <div class="step"><span class="n">8</span><div>
+      <p class="t">Module 2: a Keras autoencoder for the failures nobody labelled — with an honest result.</p>
+      <p>The classifier only knows failure patterns it has labels for. So I trained a
+        <b class="term">Keras/TensorFlow autoencoder</b> (196 → 64 → <b class="term">16-number bottleneck</b> → 64 → 196)
+        on <b>healthy weeks only</b>, on <b class="term">Databricks serverless</b> — machines drifting off "normal"
+        reconstruct badly, and that <b class="term">reconstruction error</b> is a label-free anomaly score. Result,
+        reported straight: PR-AUC <b>0.111</b> — 9× random, beats IsolationForest (0.074), and <b>loses to the simple
+        per-sensor z-score alarm (0.202)</b>. I shipped the comparison instead of hiding it — see the Q&amp;A for why
+        that's the strongest card in the deck.</p>
+    </div></div>
+  </div>
+</section>
+
+<!-- ============ 3. WHY THE CLOUD — THE TABS ============ -->
+<section id="cloud">
+  <div class="wrap">
+    <p class="eyebrow">03 · The cloud part, explained like I'm 5</p>
+    <h2>Why Databricks and Snowflake if my laptop already did it?</h2>
+    <p class="lead">Short answer: <b>my laptop proves the idea; the cloud proves it scales and survives me.</b>
+      A laptop can't hold a real fleet's data (250,000 machines, terabytes of logs), dies when I close the lid,
+      and nobody else can query it. Click through:</p>
+
+    <div class="tabs" role="tablist">
+      <button class="active" data-tab="t-why">Why cloud at all</button>
+      <button data-tab="t-dbx">Databricks — what we did</button>
+      <button data-tab="t-snow">Snowflake — what we did</button>
+      <button data-tab="t-64">Why 6 files there, 4 tables here</button>
+    </div>
+
+    <div class="tabpanel active" id="t-why"><div class="panel">
+      <p><b>Think of the data's journey as: warehouse-of-ingredients → factory → showroom.</b></p>
+      <table><thead><tr><th>Stage</th><th>Tool</th><th>Like-I'm-5</th></tr></thead><tbody>
+        <tr><td><b>Storage</b> (raw logs)</td><td>Azure Blob / Parquet <i>(we used local Parquet + a Databricks Volume)</i></td><td>a giant cheap shed where every raw log file is kept forever, untouched</td></tr>
+        <tr><td><b>Processing</b> (make features)</td><td><b>Databricks</b> (runs Spark)</td><td>the factory: hundreds of workers chop the raw logs into the 226 features, in parallel</td></tr>
+        <tr><td><b>Serving</b> (answer questions)</td><td><b>Snowflake</b> (SQL warehouse)</td><td>the showroom: clean, organised shelves where anyone in the business can ask questions in SQL, fast</td></tr>
+      </tbody></table>
+      <p style="margin-top:.9rem">My laptop played all three roles at once — fine for 500 machines, impossible for
+        250,000. The cloud splits the roles so each part scales on its own, runs on a schedule without me, and is
+        shared: the analyst in Germany and the service manager in India query the <i>same</i> Snowflake table.
+        <b>And this is precisely the stack in the Siemens JD</b> — so I ran my pipeline on it for real rather than
+        just naming the logos.</p>
+    </div></div>
+
+    <div class="tabpanel" id="t-dbx"><div class="panel">
+      <p><b>What Databricks is:</b> a website where you rent Spark clusters (the "factory") without owning any
+        machines. You write notebooks; it runs them on serverless compute.</p>
+      <p style="margin-top:.7rem"><b>Exactly what we did, in order:</b></p>
+      <table><thead><tr><th>#</th><th>Action</th><th>What it means</th></tr></thead><tbody>
+        <tr><td>1</td><td>Created a <b>Volume</b> (<code>workspace.default.fleetpulse</code>)</td><td>a cloud folder inside Databricks — our stand-in for Azure Blob storage</td></tr>
+        <tr><td>2</td><td>Uploaded <b>6 Parquet files</b> (~9 MB)</td><td>the raw star schema: fleet_master, telemetry, error_events, failures, maintenance, tickets</td></tr>
+        <tr><td>3</td><td>Imported <code>databricks_features.ipynb</code></td><td>the same feature code as <code>features_spark.py</code> — only the file paths changed</td></tr>
+        <tr><td>4</td><td>Ran it on <b>Serverless</b> compute</td><td>Databricks found machines, ran Spark, gave them back — we never managed a server</td></tr>
+        <tr><td>5</td><td>Got <b>24,867 rows × 226 cols</b></td><td><b>identical to the laptop run</b> — same code, same data, same answer, different engine</td></tr>
+        <tr><td>6</td><td>Saved as a table (<code>fleetpulse_features</code>) and queried it with Spark SQL</td><td>proof the output is a governed, queryable asset, not just a file</td></tr>
+        <tr><td>7</td><td>Later: trained <b>Module 2's Keras autoencoder</b> here (<code>databricks_autoencoder.ipynb</code>)</td><td>deep learning on the compute platform; learned the <code>%pip install</code> → <code>dbutils.library.restartPython()</code> → import dance</td></tr>
+      </tbody></table>
+      <div class="understand"><b>🔍 For my understanding:</b> the reason this "just worked" is that Spark code doesn't
+        care where it runs — <code>spark.read.parquet(path)</code> is the same sentence on a laptop or on a
+        1,000-machine cluster. That <b>portability</b> is the whole reason we wrote the features in PySpark from day
+        one instead of pandas.</div>
+    </div></div>
+
+    <div class="tabpanel" id="t-snow"><div class="panel">
+      <p><b>What Snowflake is:</b> a SQL data warehouse in the cloud — the "showroom" where business-ready tables
+        live and anyone can query them with plain SQL. Ours genuinely runs on <b>Azure UK South</b>, matching the JD.</p>
+      <p style="margin-top:.7rem"><b>Exactly what we did, in order:</b></p>
+      <table><thead><tr><th>#</th><th>Action</th><th>What it means</th></tr></thead><tbody>
+        <tr><td>1</td><td><code>CREATE DATABASE FLEETPULSE; CREATE SCHEMA ANALYTICS;</code></td><td>made the shelf space</td></tr>
+        <tr><td>2</td><td>Uploaded <b>4 Parquet files</b> via the wizard → tables SCORES, FEATURES_LABELED, FLEET_MASTER, FAILURES</td><td>the <i>outputs</i> of the pipeline, not the raw inputs (see next tab)</td></tr>
+        <tr><td>3</td><td>Discovered the wizard loaded each file as one <b>VARIANT</b> column</td><td>VARIANT = Snowflake's "flexible JSON blob" type; our named columns were hiding inside it</td></tr>
+        <tr><td>4</td><td>Built <b>views</b> (<code>V_SCORES</code>…) that extract + cast each field, converting dates from <b>epoch microseconds</b></td><td>a view = a saved query that looks like a clean table; the raw table stays untouched</td></tr>
+        <tr><td>5</td><td>Ran 7 analytical queries</td><td>KPI snapshot · top-20 worklist priced in $ · <b>recall@20 recomputed in pure SQL (≈0.76 — matches Python)</b> · failure costs by component · calibration check · age-vs-risk</td></tr>
+      </tbody></table>
+      <div class="understand"><b>🔍 For my understanding:</b> we also hit two very real-world potholes and fixed them:
+        <b>(a)</b> <code>rows</code> is a reserved word in Snowflake — renamed the alias; <b>(b)</b> during four rounds
+        of upload-wizard I loaded the wrong file into two tables — caught it because the <b>row counts didn't match
+        expectations</b> (24,867 where 440 should be). Lesson I'll say out loud in interviews: <i>always verify row
+        counts after any load.</i></div>
+    </div></div>
+
+    <div class="tabpanel" id="t-64"><div class="panel">
+      <p><b>Why did Databricks get 6 files but Snowflake only 4?</b> Because they play different roles in the
+        kitchen: <b>Databricks is where you cook; Snowflake is where you serve.</b></p>
+      <table><thead><tr><th></th><th>Databricks (the factory)</th><th>Snowflake (the showroom)</th></tr></thead><tbody>
+        <tr><td><b>Job</b></td><td>build features from raw events</td><td>answer business questions fast</td></tr>
+        <tr><td><b>Needs</b></td><td>the raw ingredients — all 6 raw tables (telemetry, errors, maintenance… even tickets for the future copilot)</td><td>the finished dishes — scores, the labeled feature table, plus the 2 small tables the queries join to (fleet_master for names, failures for costs)</td></tr>
+        <tr><td><b>Didn't need</b></td><td>—</td><td>1M raw telemetry rows or 323K error events — the features already summarise them; raw stays in the lake</td></tr>
+      </tbody></table>
+      <p style="margin-top:.9rem">This split has a name — the <b>medallion architecture</b>: <b>bronze</b> (raw,
+        untouched, cheap storage) → <b>silver</b> (cleaned &amp; joined) → <b>gold</b> (business-ready tables people
+        query). We put bronze in the Databricks Volume, made silver with PySpark, and served gold in Snowflake.
+        In production the same picture holds — just with Azure Blob as bronze and Azure Data Factory as the scheduler.</p>
+    </div></div>
+
+    <div class="say" style="margin-top:1.2rem"><p class="q">My 30-second spoken version (verified ✓)</p>
+      <div class="a">"I used the <b>medallion architecture</b> as my data pipeline. Databricks acted as my bronze and
+        silver layer. Raw data came in as Parquet files — that's my bronze. PySpark inside Databricks then ran the
+        feature extraction, producing 226 features per machine per week — that's my silver, the transformation
+        engine. Those features were then fed into <b>Snowflake</b>, which acted as my gold layer — a proper data
+        warehouse where analysts and stakeholders can run pure SQL queries and build dashboards directly on top of
+        the data. In production, <b>Azure Blob Storage</b> would replace the raw file storage at the bronze layer, and
+        <b>Azure Data Factory</b> would schedule and orchestrate the entire pipeline automatically — so the whole thing
+        runs without anyone manually pressing run."</div>
+      <p class="terms">if pushed on definitions: "the scores and analytics views in Snowflake are the true gold; the
+        feature table sits at the silver/gold boundary — I loaded it too so analysts can explore." · if asked how data
+        moved Databricks→Snowflake: "manually in my slice — that hop is exactly what Data Factory automates."</p></div>
+  </div>
+</section>
+
+<!-- ============ 4. MODULE 2 DEEP DIVE ============ -->
+<section id="m2">
+  <div class="wrap">
+    <p class="eyebrow">04 · Module 2 — the anomaly detector, start to finish</p>
+    <h2>Catching the failures nobody labelled</h2>
+    <p class="lead"><b>The one-liner:</b> Module 1's XGBoost is <i>supervised</i> — it only learns failure patterns
+      we already labelled, and we only had about <b>440 known failures</b>. Real fleets also break in ways nobody
+      has annotated yet. So Module 2 is the <b>safety net</b>: an unsupervised anomaly detector that never sees a
+      failure label. It learns what "normal" looks like for each machine, then flags when behaviour drifts away
+      from that normal.</p>
+
+    <div class="step"><span class="n">1</span><div>
+      <p class="t">What we fed it — a fortnight of behaviour per machine.</p>
+      <p class="sayit">Say it like this</p>
+      <p>"For every machine, every Monday, I take the last 14 days of telemetry across 14 sensors — a fortnight of
+        behaviour. I <b>z-score it per machine</b>: each sensor is measured against that machine's <i>own</i>
+        history, so a machine that's naturally hot doesn't look anomalous forever just because it runs hotter than
+        the fleet. We're not asking 'is this high?' — we're asking 'is this high <i>for this machine</i>?' Extreme
+        spikes get clipped, then I flatten the window into <b>196 numbers</b> — 14 days × 14 sensors. Across the
+        fleet that's 23,922 windows."</p>
+      <p class="jargon">Jargon to keep: telemetry · z-score per machine · fortnight window · flatten · 196-dim input</p>
+    </div></div>
+
+    <div class="step"><span class="n">2</span><div>
+      <p class="t">The ML — an autoencoder, i.e. a photocopier.</p>
+      <p class="sayit">Say it like this</p>
+      <p>"I used a <b>Keras/TensorFlow autoencoder</b> — the classic deep-learning tool for anomaly detection in
+        predictive maintenance, and it hits the JD's Keras+TensorFlow ask where it actually fits. Think of it as a
+        photocopier shaped <b>196 → 64 → 16 → 64 → 196</b>: it has to squeeze a whole fortnight through a bottleneck
+        of just 16 numbers, then rebuild the original 196. Target equals input, so the loss is <b>MSE</b> — how
+        badly the copy differs from the original. I trained it <b>only on healthy windows</b> — 14,760 of them, no
+        failure within 14 days — so it only ever learns 'normal.' Adam, batch 256, up to 40 epochs with early
+        stopping, fixed seed so it reproduces."</p>
+      <p class="why">Why it works: it can compress and rebuild <i>normal</i> behaviour cleanly; weird behaviour
+        won't compress well, so the rebuild comes out blurry — and that blurriness is the signal.</p>
+      <p class="jargon">Jargon to keep: autoencoder · bottleneck · reconstruction · MSE · trained on healthy only · unsupervised · Adam · early stopping</p>
+    </div></div>
+
+    <div class="step"><span class="n">3</span><div>
+      <p class="t">Where it trained — a Databricks war story.</p>
+      <p class="sayit">Say it like this</p>
+      <p>"Deep-learning training belongs on the compute platform, not my laptop — so I ran it on <b>Databricks
+        serverless</b> in <code>databricks_autoencoder.ipynb</code>, with the windows in the same
+        <code>fleetpulse</code> volume. One real gotcha: <code>%pip install tensorflow</code> isn't enough — pip
+        installs the library, but the running Python session still holds the old environment. You have to call
+        <code>dbutils.library.restartPython()</code>, <i>then</i> train. Classic Databricks gotcha — we hit it and
+        fixed it live."</p>
+      <p class="jargon">Jargon to keep: Databricks serverless · volume · %pip install → restartPython()</p>
+    </div></div>
+
+    <div class="step"><span class="n">4</span><div>
+      <p class="t">Scoring — blurriness is the anomaly score.</p>
+      <p class="sayit">Say it like this</p>
+      <p>"After training, every one of the 23,922 machine-weeks goes through the network. The <b>reconstruction
+        error</b> — the mean squared difference between the input and the copy — is that week's anomaly score.
+        Machines drifting off their own normal reconstruct badly and score high. The distributions show real
+        separation — failing weeks sit to the right of healthy ones — but there's honest overlap, and about 15% of
+        failures are sudden, so <i>no</i> telemetry-based detector can see those coming."</p>
+      <p class="jargon">Jargon to keep: reconstruction error · anomaly score · separation with overlap</p>
+    </div></div>
+
+    <div class="step"><span class="n">5</span><div>
+      <p class="t">The verdict — say the numbers, then defend them.</p>
+      <p class="sayit">Say it like this</p>
+      <p>"Same test window, same labels, same metric for everyone. Autoencoder <b>PR-AUC 0.111</b> — about 9× random
+        (0.013); it beats IsolationForest (0.074), but <b>loses to the simple per-sensor z-score alarm (0.202)</b>,
+        and it's far below supervised XGBoost (0.479). Why it lost: my score averages error over all 196 inputs,
+        which <i>dilutes</i> a single-sensor drift — and single-sensor drift is this fleet's dominant failure
+        signature, which the per-sensor rule catches directly. Roadmap: score by <b>max per-sensor error</b>, one
+        model per modality, maybe an LSTM autoencoder for temporal shape. It keeps its place because it's the only
+        detector that needs <b>no labels</b> — the net for failure modes nobody has annotated yet."</p>
+      <p class="why">The interview flex: reporting that your deep model <i>lost</i> to a simple rule shows you care
+        about the honest comparison, not the buzzword.</p>
+    </div></div>
+
+    <div class="say"><p class="q">My 30-second spoken version (Module 2)</p>
+      <div class="a">"Module 2 is my safety net. XGBoost only knows labelled failures — but machines also break in
+        new ways. So I trained a Keras autoencoder on Databricks: it compresses a fortnight of telemetry through a
+        16-number bottleneck and rebuilds it, trained only on healthy weeks. When a machine drifts off its own
+        normal, reconstruction error spikes — that's my label-free anomaly score. Honest result: PR-AUC 0.111, 9×
+        random, beats IsolationForest, loses to a per-sensor z-score at 0.202 — because averaging over 196 dims
+        dilutes single-sensor drift. Next I'd score max per-sensor error. The point isn't that deep learning always
+        wins — it's knowing when it doesn't, and still having a net."</div>
+      <p class="terms">memorise cold: 0.111 / 0.013 / 0.074 / 0.202 / 0.479 — that's the credibility spine</p></div>
+
+    <p class="modtag">If they poke</p>
+    <div class="tblwrap"><table class="poke">
+      <tr><th>They ask</th><th>You say</th></tr>
+      <tr><td>Why not just use XGBoost?</td><td>XGBoost is supervised — it only catches failure modes I've already labelled, which is exactly Module 1's blind spot. Module 2 has to be unsupervised so it can flag failures <b>nobody has labelled yet</b>. <i>Same tool would be the same blind spot.</i></td></tr>
+      <tr><td>Why z-score per machine?</td><td>Machines have different baselines — a naturally hot scanner isn't broken. Per-machine z-score asks <b>“high for this machine?”</b> not “high for the fleet?”, stripping out each machine's personality so only genuine drift is left. Fleet-wide thresholds would punish it forever just for running hot.</td></tr>
+      <tr><td>Why train on healthy only?</td><td>So it learns to copy <b>only normal</b>. If failing windows got in, it'd reconstruct sick machines cleanly too — and they'd stop standing out, defeating the detector. Healthy-only means anomalies come out as bad copies. <i>(One-class learning.)</i></td></tr>
+      <tr><td>Why did the z-score win?</td><td>The failure signature here is <b>single-sensor drift</b>, but my score <b>averages</b> error over all 196 sensors — one loud sensor diluted by 195 quiet ones. The per-sensor rule checks each alone, so it catches it directly. It won on <b>fit, not smarts</b>. Fix: score the <b>max</b> per-sensor error, not the mean.</td></tr>
+      <tr><td>Why keep Module 2 at all?</td><td>It's the <b>only label-free detector</b> — the safety net for failure modes nobody has annotated yet. Not the best scorer today, but the only one that could flag a <b>brand-new failure type</b> — and 0.11 is a v1, not a ceiling (max-error, per-modality, LSTM all on the table).</td></tr>
+    </table></div>
+  </div>
+</section>
+
+<!-- ============ 4b. MODULE 3 DEEP DIVE ============ -->
+<section id="m3">
+  <div class="wrap">
+    <p class="eyebrow">04b · Module 3 — the engineer copilot, start to finish</p>
+    <h2>"When this machine did this before — what fixed it?"</h2>
+    <p class="lead"><b>The one-liner:</b> Module 1 predicts which machines will fail; Module 2 flags weird behaviour
+      with no labels. Module 3 helps the engineer <i>once they're standing at the machine</i>: it takes the symptom
+      and retrieves the most similar past service tickets, so the fix that worked last time is one search away. It's
+      a <b>retrieval assistant, not a chatbot</b> — deliberately no LLM.</p>
+
+    <div class="step"><span class="n">1</span><div>
+      <p class="t">What we fed it — past tickets, symptom side only.</p>
+      <p class="sayit">Say it like this</p>
+      <p>"I indexed <b>440 past corrective tickets</b>, but only the <b>symptom half</b> — the complaint — never the
+        resolution. That's deliberate: if I indexed the fix, I'd be leaking the very answer I'm trying to retrieve.
+        So the search matches on how the problem <i>looked</i>, then surfaces what fixed it."</p>
+      <p class="jargon">Jargon to keep: corrective tickets · symptom vs resolution · leakage-safe indexing</p>
+    </div></div>
+
+    <div class="step"><span class="n">2</span><div>
+      <p class="t">The ML — TF-IDF + cosine, and why not an LLM.</p>
+      <p class="sayit">Say it like this</p>
+      <p>"I used <b>TF-IDF with cosine similarity</b> — turn each ticket's symptom text into a bag-of-words vector
+        weighted so rare, informative words count more, then find the closest past tickets by cosine angle and show
+        their resolutions. I chose it over an LLM on purpose: this is <b>retrieval, not generation</b>. It's
+        explainable — I can point at the exact words that matched — it runs offline with no API key, and it can't
+        hallucinate a fix that never happened."</p>
+      <p class="why">Why not embeddings yet: TF-IDF is the right dependency-free v1. Embeddings are the roadmap —
+        and I've got the measured evidence for when they'd help (below).</p>
+      <p class="jargon">Jargon to keep: TF-IDF · cosine similarity · bag-of-words · retrieval not generation · explainable · offline</p>
+    </div></div>
+
+    <div class="step"><span class="n">3</span><div>
+      <p class="t">Where it runs — 187KB of JSON, scored in the browser.</p>
+      <p class="sayit">Say it like this</p>
+      <p>"It ships as a <b>187KB JSON file the browser scores itself</b> — no server, no API, no model to host. The
+        catch is I have <i>two</i> scorers: the Python one in the pipeline and a TypeScript one in the browser, and
+        they have to stay in <b>lockstep</b> — same stopword list, same tokenizer, same sublinear-TF, same L2
+        normalisation — or they'd rank the same query differently."</p>
+      <p class="jargon">Jargon to keep: client-side scoring · Python/TS parity · stoplist · tokenizer · sublinear-TF · L2 norm</p>
+    </div></div>
+
+    <div class="step"><span class="n">4</span><div>
+      <p class="t">The honest numbers — and the trap in them.</p>
+      <p class="sayit">Say it like this</p>
+      <p>"Leave-one-out scored a perfect <b>1.000 — which is worthless</b>, and I say so: the tickets are templated,
+        so a ticket just matches its near-identical twin. That's string-matching, not intelligence. The real test is
+        <b>held-out paraphrases</b>: <b>P@1 0.636</b>, top-10 consensus 0.682, against a majority-class baseline of
+        0.452. So it genuinely beats guessing — but it's lexical, and I'm honest that leave-one-out flattered it."</p>
+      <p class="jargon">Jargon to keep: leave-one-out (worthless here) · held-out paraphrases · P@1 0.636 · baseline 0.452</p>
+    </div></div>
+
+    <div class="step"><span class="n">5</span><div>
+      <p class="t">The bug war story — and the verdict.</p>
+      <p class="sayit">Say it like this</p>
+      <p>"I found an evaluation bug worth retelling. My eval ranked all 440 tickets and took the top one — but a
+        query with <b>no overlapping words</b> scores 0.0 against <i>every</i> ticket, and <code>argsort</code> on
+        an all-zero array still returns ticket 0. So a total miss was being counted as a hit, inflating P@1 from the
+        true 0.636 up to 0.682. I caught it by making the browser and the pipeline score the same 22 queries and
+        <b>demanding they agree</b> — they now agree 22 out of 22. The rule I took from it: <b>no match must mean no
+        match</b>. And every remaining miss is <i>lexical, not conceptual</i> — 'grinding noise' retrieves a
+        detector ticket because they share the word 'noise' — which is exactly the measured argument for upgrading to
+        embeddings later."</p>
+      <p class="why">The interview flex: I didn't just build a search box — I stress-tested my own metric and found
+        it was lying to me. That's the difference between a demo and production discipline.</p>
+    </div></div>
+
+    <div class="say"><p class="q">My 30-second spoken version (Module 3)</p>
+      <div class="a">"Module 3 is the engineer's copilot. When someone's at a machine, it takes the symptom and
+        retrieves the most similar past tickets — so the fix that worked before is one search away. I built it with
+        TF-IDF and cosine, not an LLM, on purpose: it's retrieval, it's explainable, it runs in the browser with no
+        API, and it can't hallucinate. Honest numbers: on held-out paraphrases P@1 is 0.636 versus a 0.452 baseline
+        — leave-one-out said 1.0 but that's worthless on templated tickets, and I say so. I also caught an eval bug
+        where a total miss counted as a hit, by forcing my Python and browser scorers to agree on 22 queries. Every
+        miss is lexical, not conceptual — which is my measured case for moving to embeddings next."</div>
+      <p class="terms">key terms: TF-IDF · cosine · retrieval not generation · P@1 0.636 vs 0.452 · Python/browser parity · no-match-means-no-match</p></div>
+
+    <p class="modtag">If they poke</p>
+    <div class="tblwrap"><table class="poke">
+      <tr><th>They ask</th><th>You say</th></tr>
+      <tr><td>Why not just use an LLM?</td><td>This is retrieval, not generation — TF-IDF is explainable, offline, and can't hallucinate a fix.</td></tr>
+      <tr><td>Why index only the symptom?</td><td>Indexing the resolution would leak the answer I'm trying to retrieve.</td></tr>
+      <tr><td>Why is leave-one-out worthless?</td><td>Templated tickets match their near-twins — it's string-matching, not understanding.</td></tr>
+      <tr><td>What was the bug?</td><td>An all-zero score still argsorts to ticket 0 — a total miss counted as a hit. No match must mean no match.</td></tr>
+      <tr><td>When would you use embeddings?</td><td>Every miss is lexical — 'grinding noise' vs 'noise detector' — semantics would fix exactly those.</td></tr>
+    </table></div>
+  </div>
+</section>
+
+<!-- ============ 5. IF I CAN'T SHARE MY SCREEN ============ -->
+<section id="spoken">
+  <div class="wrap">
+    <p class="eyebrow">05 · If I can't share my screen</p>
+    <h2>What I'd say, out loud</h2>
+
+    <div class="say"><p class="q">What predictive model did you build?</p>
+      <div class="a">"An XGBoost classifier that scores every machine's probability of failing in the next 7 days,
+        trained on 226 features engineered from a year of machine logs — rolling sensor trends, error bursts,
+        maintenance history. I calibrated the probabilities with Platt scaling so a 0.4 really means 40%, and the
+        output is a ranked weekly worklist: the top-20 machines catch 78% of that week's failures with a median
+        3-day warning."</div>
+      <p class="terms">key terms: XGBoost · Platt calibration · recall@20 = 0.78 · PR-AUC 0.48 vs 0.013 random · 3-day lead time</p></div>
+
+    <div class="say"><p class="q">How did you validate it?</p>
+      <div class="a">"Three layers. Time-based split — train January–August, test November–December, never random,
+        because random splits let the model memorise machine trajectories. Leakage unit tests — an automated test
+        asserts no feature ever uses data after its scoring day. And a business backtest — I replayed the test weeks
+        and counted money: the worklist would have avoided 104 downtime days, about $2.7M net, and that 41/54 catch
+        rate independently agrees with the recall metric."</div>
+      <p class="terms">key terms: temporal split · leakage tests · backtest · metric–money consistency</p></div>
+
+    <div class="say"><p class="q">Why not a neural network?</p>
+      <div class="a">"Deliberate choice: tabular features, only ~440 failure events, and service engineers must see
+        <i>why</i> a machine is flagged — XGBoost with SHAP gives calibrated, explainable risk. Deep learning is in the
+        project where it fits: an autoencoder for anomaly detection on raw telemetry, catching failure modes we have
+        no labels for."</div>
+      <p class="terms">key terms: SHAP explainability · class scarcity · autoencoder (Module 2)</p></div>
+
+    <div class="say"><p class="q">What did the cloud add?</p>
+      <div class="a">"Proof of portability and scale-path. The identical PySpark job ran on Databricks serverless and
+        reproduced the local result to the row. The outputs live in Snowflake on Azure, where I rebuilt the analytics
+        in SQL — including recomputing recall@20 in the warehouse. On a real fleet you'd never do this on a laptop;
+        the code was written so you don't have to."</div>
+      <p class="terms">key terms: Databricks serverless · Snowflake on Azure · medallion architecture · same-answer reproduction</p></div>
+  </div>
+</section>
+
+<!-- ============ 5. WHAT EVERY NUMBER MEANS ============ -->
+<section id="numbers">
+  <div class="wrap">
+    <p class="eyebrow">06 · What every number/chart means</p>
+    <h2>The two-layer cheat sheet</h2>
+
+    <div class="say"><p class="q">Recall@20 = 0.78</p>
+      <div class="a"><b>In the interview:</b> "Of all the failures that actually happened, 78% were already on our
+        weekly 20-machine inspection list."</div>
+      <div class="understand"><b>🔍 For my understanding:</b> "@20" means "when only allowed to pick 20." 54 fires broke
+        out; 41 were in buildings we'd flagged. Recall = did we <i>find</i> the bad ones. Its twin, precision@20 = 0.23,
+        asks: of the 20 we visited, how many were really failing? ~1 in 4–5. We accept wasted $800 visits to avoid
+        $54,000 surprises — the 100:1 cost asymmetry decides the trade-off, not vanity metrics.</div></div>
+
+    <div class="say"><p class="q">PR-AUC = 0.48 (random ≈ 0.013)</p>
+      <div class="a"><b>In the interview:</b> "Precision-recall area — the right headline metric at 1.7% prevalence;
+        we're ~37× better than chance, and ~2× the best simple rule (a z-score alarm scores 0.20)."</div>
+      <div class="understand"><b>🔍 For my understanding:</b> accuracy fails on rare events (say "no failure" always →
+        98% accurate, catches nothing). PR-AUC only rewards you for finding the rare positives without crying wolf.
+        The 0.48 isn't "48% correct" — it's a curve area; what matters is the comparison: random 0.013, simple rules 0.20, us 0.48.</div></div>
+
+    <div class="say"><p class="q">Calibration (Brier 0.009)</p>
+      <div class="a"><b>In the interview:</b> "Predicted probabilities match observed frequencies — of machines scored
+        40%, about 40% actually failed. That's what makes risk × cost arithmetic legitimate."</div>
+      <div class="understand"><b>🔍 For my understanding:</b> an uncalibrated model is like a friend who says "100% sure"
+        about everything — directionally right, numerically useless. Platt scaling re-maps scores onto honest
+        probabilities. We proved it in SQL too: bucket machines by predicted risk, compare to actual failure rate per
+        bucket — the two columns track each other.</div></div>
+
+    <div class="say"><p class="q">Autoencoder PR-AUC = 0.111 (Module 2)</p>
+      <div class="a"><b>In the interview:</b> "My label-free anomaly detector: nine times better than random, better
+        than IsolationForest — but it lost to the per-sensor z-score alarm at 0.202, and I report that openly. Its
+        value is catching failure modes nobody has labelled; its next iteration is scoring by max per-sensor error
+        instead of the mean."</div>
+      <div class="understand"><b>🔍 For my understanding:</b> why did it lose? The autoencoder averages its "blurriness"
+        over all 196 numbers, so one slowly-drifting sensor gets drowned out by 195 well-copied ones — and
+        one-sensor drift is exactly how this fleet usually fails. The z-score alarm checks each sensor separately, so
+        it's hand-shaped for that signature. Lesson: a domain-fit simple rule beats a generic deep model — knowing
+        <i>when</i> deep learning helps is the skill.</div></div>
+
+    <div class="say"><p class="q">Net savings ≈ $2.66M (backtest)</p>
+      <div class="a"><b>In the interview:</b> "Over the two held-out months, the weekly worklist would have avoided 104
+        downtime days: $2.81M avoided minus $144k of inspections — about a 78% cut in the downtime bill. Assumptions
+        disclosed: $27k/down-day, $800/visit, an inspection converts a breakdown into a planned visit."</div>
+      <div class="understand"><b>🔍 For my understanding:</b> this is <i>expected value</i> logic made concrete. The
+        number scales with the assumptions (synthetic data, upsampled failure rate) — so I lead with the <b>percentage</b>
+        (~78%) which is robust, and quote the dollars as an illustration, never a promise.</div></div>
+  </div>
+</section>
+
+<!-- ============ 6. IF I DO SHARE MY SCREEN ============ -->
+<section>
+  <div class="wrap">
+    <p class="eyebrow">07 · If I DO share my screen</p>
+    <h2>The click path (5 minutes)</h2>
+    <div class="tblwrap"><table>
+      <thead><tr><th>#</th><th>Open</th><th>Say</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td><code>solution-blueprint.html</code></td><td>the problem, the 100:1 economics, the three modules — 60 seconds</td></tr>
+        <tr><td>2</td><td>Data model &amp; EDA report</td><td>"six tables, one key" + the helium-drift chart: why prediction is possible</td></tr>
+        <tr><td>3</td><td><code>impact_engine.ipynb</code></td><td>scroll to the backtest chart: green = caught, red = missed; the $2.66M cell</td></tr>
+        <tr><td>4</td><td>Databricks workspace (or evidence screenshots)</td><td>same code, real cluster, same 24,867 × 226</td></tr>
+        <tr><td>5</td><td>Snowflake worksheet</td><td>run section 4 live: recall@20 recomputed in SQL = 0.759</td></tr>
+        <tr><td>6</td><td><code>autoencoder_anomaly.ipynb</code></td><td>the honest benchmark chart: "my deep model lost to a simple rule — and here's why that makes the rest trustworthy"</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+</section>
+
+<!-- ============ 7. THE CONVERSATION ============ -->
+<section id="qa">
+  <div class="wrap">
+    <p class="eyebrow">08 · The conversation</p>
+    <h2>They ask / I'd say</h2>
+
+    <details><summary>Your data is synthetic — why should I believe anything?</summary><div class="body">
+      <p>"You shouldn't believe the absolute numbers — I don't either; failure rates are deliberately upsampled so one
+        year is trainable, and that's disclosed on every artifact. What the synthetic fleet buys is <i>method</i>
+        proof: leakage-safe features, honest metrics at 1.7% prevalence, calibration, cost-based thresholds. With your
+        real fleet, my first two weeks would be sitting with service engineers finding where my generator's
+        assumptions are wrong — that's the fastest path to a trustworthy model."</p>
+      <p class="land"><b>Land this:</b> honesty + a concrete first-two-weeks plan. Never defend the dollars.</p>
+    </div></details>
+
+    <details><summary>Why XGBoost and not something newer?</summary><div class="body">
+      <p>"440 positive examples, tabular features, and users who need reasons. Boosted trees are still the strongest
+        baseline on that shape of data, handle missing sensor values natively, and SHAP gives per-machine
+        explanations a service planner can read. I benchmarked against simpler rules — z-score alarms, IsolationForest,
+        age-ranking — and XGBoost roughly doubles the best of them. Newer isn't a reason; better-on-this-data is."</p>
+    </div></details>
+
+    <details><summary>What exactly is leakage, and how do you know you don't have it?</summary><div class="body">
+      <p>"Leakage is when training data smuggles in information from the future — like using the failure-day error
+        burst to 'predict' that day's failure. Three defences: every rolling window ends <i>at</i> the scoring day
+        (<code>rangeBetween(-(w-1), 0)</code>); labels come from a strictly <i>later</i> window (t, t+7]; and a unit
+        test fails the build if any feature touches post-scoring-day data. Also: time-based split, because random
+        splits leak machine identity."</p>
+      <p class="land"><b>For me:</b> this is the question that separates levels — have the three defences ready in order.</p>
+    </div></details>
+
+    <details><summary>Why did you run it on Databricks when your laptop could handle it?</summary><div class="body">
+      <p>"Two reasons. Credibility: the JD names Databricks and Snowflake, so I wanted 'I ran my pipeline there'
+        rather than 'I read about it'. Architecture: the code was written in PySpark precisely so scale is a config
+        change, not a rewrite — and the cloud run proved it: identical 24,867 × 226 output. On your fleet the same
+        job points at Blob storage and a bigger cluster; nothing else changes."</p>
+    </div></details>
+
+    <details><summary>What's the difference between Databricks and Snowflake? Why both?</summary><div class="body">
+      <p>"Different jobs. Databricks is compute over the data lake — heavy transformation, ML, streaming; it's where
+        raw logs become features. Snowflake is the analytical warehouse — clean tables, fast SQL, easy sharing and
+        governance; it's where the business asks questions. Factory versus showroom. In our slice: 6 raw tables went
+        to the factory, 4 finished tables to the showroom — the raw telemetry never needs to sit in the warehouse
+        because the features already summarise it."</p>
+    </div></details>
+
+    <details><summary>Your deep-learning model LOST to a one-line rule. Why show that?</summary><div class="body">
+      <p>"Because it's true, and because the comparison is the deliverable. The autoencoder scored 0.111 — well above
+        random and IsolationForest — but the per-sensor z-score alarm scored 0.202, and supervised XGBoost 0.479. The
+        reason is mechanical: my score averages reconstruction error over 196 inputs, which dilutes single-sensor
+        drift — the dominant failure signature here — while the z-score rule checks sensors one by one. Next
+        iteration: max per-sensor error, per-modality models, an LSTM autoencoder for temporal shape. But the honest
+        ranking ships first. If I hid my model losing to a baseline, you shouldn't trust my $2.6M savings number
+        either."</p>
+      <p class="land"><b>Land this:</b> this answer converts a 'failure' into the strongest trust signal in the
+        interview. Never rescue the number — sell the discipline.</p>
+    </div></details>
+
+    <details><summary>What broke along the way? (they love this one)</summary><div class="body">
+      <p>"Plenty — and each one taught a portable lesson. Snowflake's wizard loaded my Parquet as a single VARIANT
+        column, so I flattened it with typed views and learned its epoch-microsecond timestamp dance. <code>rows</code>
+        turned out to be a reserved word. And I loaded the wrong file into a table during repeated uploads — caught it
+        because the row count was 24,867 where 440 should have been. Rule burned in: verify row counts after every
+        load, cross-check every metric two ways."</p>
+      <p class="land"><b>Land this:</b> engineers trust people who tell debugging stories with specifics.</p>
+    </div></details>
+
+    <details><summary>How would this go to production?</summary><div class="body">
+      <p>"Weekly batch: Data Factory (or Databricks Workflows) triggers the feature job Monday 6am, scores land in
+        Snowflake, the dashboard reads them. Monitoring is designed but not built — PSI/KS drift on the feature
+        distributions, performance tracked on outcomes as labels mature, a retrain trigger, and a human-in-the-loop
+        rule: FleetPulse recommends inspections; it never auto-dispatches. In a medical context that last line is
+        non-negotiable."</p>
+    </div></details>
+  </div>
+</section>
+
+<!-- ============ 8. THE SAME IDEA AT SIEMENS + ONE THING COLD ============ -->
+<section id="siemens">
+  <div class="wrap">
+    <p class="eyebrow">09 · The same idea at Siemens Healthineers</p>
+    <h2>The bridge sentence</h2>
+    <div class="callout">
+      <p>"FleetPulse is a deliberate miniature of your Customer Service world: Smart Remote Services streams the
+        telemetry, Guardian promises the proactive intervention, teamplay Fleet is the customer-facing view. My
+        telemetry table is your machine logs; my worklist is your service-notification prioritisation; my impact
+        engine is the business case your team defends internally. <b>It's a toy next to your installed base — and
+        here's what building it taught me, and what I'd ask your team first.</b>"</p>
+    </div>
+
+    <h2 style="margin-top:2rem">One thing worth knowing cold</h2>
+    <p class="lead"><b>Parquet</b> — the answer to "why not CSV?": it stores data <b>by column</b>, not by row, so a
+      query touching 3 of 226 columns reads ~1% of the file; it's compressed (~5–10× smaller), carries its own
+      schema (types travel with the data — no guessing), and is splittable so Spark can chew one file with 100
+      workers in parallel. It's the lingua franca: pandas, Spark, Databricks, Snowflake, DuckDB all read it natively.
+      One sentence version: <i>"CSV is a text printout; Parquet is a database file — typed, compressed, columnar,
+      and parallel-friendly."</i></p>
+  </div>
+</section>
+
+<footer class="footer">
+  <div class="wrap">
+    <p><b>FleetPulse</b> — interview walkthrough v3 (Modules 1–3 + cloud slice) · prepared for Deekshita's rehearsal</p>
+    <p>Independent portfolio project for interview preparation. Not affiliated with, endorsed by, or using data from
+      Siemens Healthineers. All data is synthetic; machine names, figures, and brand styling are illustrative.</p>
+  </div>
+</footer>
+
+<script>
+  document.querySelectorAll('.tabs button').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      var scope = btn.closest('section');
+      scope.querySelectorAll('.tabs button').forEach(function(b){b.classList.remove('active')});
+      scope.querySelectorAll('.tabpanel').forEach(function(p){p.classList.remove('active')});
+      btn.classList.add('active');
+      scope.querySelector('#'+btn.dataset.tab).classList.add('active');
+    });
+  });
+</script>
+</body>
+</html>

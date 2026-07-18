@@ -1,0 +1,20 @@
+# Python engine
+ml/.venv/
+ml/data/raw/
+ml/data/features/
+# Large regenerable artifacts (cloud-upload bundles + AE windows) — keep repo lean
+ml/data/snowflake_upload/
+ml/data/databricks_upload/
+*.npz
+**/__pycache__/
+*.pyc
+.pytest_cache/
+
+# Web
+web/node_modules/
+web/.next/
+web/out/
+web/.vercel/
+
+# OS / editors
+.DS_Store

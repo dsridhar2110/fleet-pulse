@@ -1,0 +1,268 @@
+<!doctype html>
+<!-- Built from design/templates/report-template.html — see design/DESIGN-SYSTEM.md -->
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Data model &amp; EDA — Fleet Pulse</title>
+  <link rel="stylesheet" href="../../design/report.css" />
+</head>
+<body>
+
+  <!-- ============ COVER ============ -->
+  <header class="cover">
+    <div class="wrap">
+      <p class="eyebrow">EDA · Data model · v1</p>
+      <h1>Six tables, one fleet — how the raw data fits together</h1>
+      <p class="objective"><b>Objective:</b> map every raw table — its grain, primary key, and how it joins the rest —
+        so anyone picking up the project knows exactly what the model is built on before a single feature is engineered.</p>
+      <div class="meta">
+        <div><div class="k">Author</div><div class="v">Deekshita</div></div>
+        <div><div class="k">Date</div><div class="v">2026-07-07</div></div>
+        <div><div class="k">Dataset</div><div class="v">Synthetic fleet · 500 machines · year 2025</div></div>
+        <div><div class="k">Type</div><div class="v">Data model + exploratory analysis</div></div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ============ 01 HEADLINE ============ -->
+  <section class="section">
+    <div class="wrap">
+      <div class="section-head"><h2><span class="no">01</span> Headline</h2></div>
+      <p class="lead">Everything the service team will ever see — the weekly worklist, the risk drivers, the ticket
+        history — is a controlled join of six raw tables. One dimension table describes the machines; five event tables
+        record what happens to them. Every join runs through a single key: <code>machine_id</code>.</p>
+      <div class="stats" style="margin-top:1.3rem">
+        <div class="stat"><div class="num accent">6</div><div class="lbl">raw tables</div></div>
+        <div class="stat"><div class="num tnum">1.37M</div><div class="lbl">rows across all tables</div></div>
+        <div class="stat"><div class="num tnum">500</div><div class="lbl">machines · 10 countries</div></div>
+        <div class="stat"><div class="num crit">1.7%</div><div class="lbl">machine-weeks with a failure</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 02 DATA MODEL ============ -->
+  <section class="section">
+    <div class="wrap">
+      <div class="section-head"><h2><span class="no">02</span> The data model — a star around <code>machine_id</code></h2></div>
+      <p class="lead">The layout mirrors how real service data lands: an asset register (who/where the machines are)
+        plus append-only event streams (what the machines did). Facts never repeat machine attributes — they carry the
+        key and join out.</p>
+
+      <figure class="fig" style="margin-top:1.2rem">
+        <img src="img/data_model.png" alt="Star schema: fleet_master dimension joined N:1 by five event tables on machine_id" />
+        <figcaption><b>Fig 1.</b> The raw data model. <code>fleet_master</code> is the dimension (PK <code>machine_id</code>);
+          telemetry, error events, failures, maintenance and tickets are event tables that each carry
+          <code>machine_id</code> as a foreign key. The dashed link on the right is a <i>soft</i> join: a corrective
+          ticket corresponds to a failure via <code>(machine_id, open_date)</code> — there is no shared surrogate ID,
+          exactly as in real service systems.</figcaption>
+      </figure>
+
+      <div class="tbl-scroll" style="margin-top:1.2rem">
+        <table class="tbl">
+          <thead><tr><th>From table</th><th>Key</th><th>To table</th><th>Cardinality</th><th>Meaning</th></tr></thead>
+          <tbody>
+            <tr><td>telemetry</td><td class="num">machine_id</td><td>fleet_master</td><td class="num">N : 1</td><td>each sensor reading belongs to one machine</td></tr>
+            <tr><td>error_events</td><td class="num">machine_id</td><td>fleet_master</td><td class="num">N : 1</td><td>each error emission belongs to one machine</td></tr>
+            <tr><td>failures</td><td class="num">machine_id</td><td>fleet_master</td><td class="num">N : 1</td><td>each failure belongs to one machine</td></tr>
+            <tr><td>maintenance</td><td class="num">machine_id</td><td>fleet_master</td><td class="num">N : 1</td><td>each visit belongs to one machine</td></tr>
+            <tr><td>tickets</td><td class="num">machine_id</td><td>fleet_master</td><td class="num">N : 1</td><td>each ticket belongs to one machine</td></tr>
+            <tr><td>tickets (corrective)</td><td class="num">machine_id + open_date</td><td>failures</td><td class="num">1 : 1 (soft)</td><td>the ticket documenting a failure opens on the failure date</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="note" style="margin-top:1.2rem">
+        <b>Honest note on keys:</b> the raw layer deliberately has <i>no surrogate IDs</i>. <code>tickets</code> has no
+        <code>ticket_id</code> — and <code>(machine_id, open_date)</code> is <i>almost</i> unique (1,608 of 1,610 rows;
+        two same-day pairs collide). <code>error_events</code> is an append-only log where the same
+        <code>(machine, day, code)</code> legitimately repeats. Real service extracts look like this; the feature
+        pipeline handles it by aggregating to an explicit grain (machine-day, then machine-week) instead of assuming
+        uniqueness.
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 03 TABLE BY TABLE ============ -->
+  <section class="section">
+    <div class="wrap">
+      <div class="section-head"><h2><span class="no">03</span> Table by table — grain, keys, columns</h2></div>
+
+      <h3 style="margin-top:1.6rem">fleet_master — the asset register <span class="pill ok">dimension</span></h3>
+      <p>One row per machine: 500 rows × 10 columns. <b>Grain:</b> machine. <b>PK:</b> <code>machine_id</code>.</p>
+      <div class="tbl-scroll">
+        <table class="tbl">
+          <thead><tr><th>Column</th><th>Type</th><th>What it is</th><th>Example</th></tr></thead>
+          <tbody>
+            <tr><td class="num">machine_id</td><td>str</td><td>unique machine identifier — the join key for everything</td><td class="num">FP-MRI-0001</td></tr>
+            <tr><td class="num">modality</td><td>str</td><td>machine type: CT (224) · MRI (177) · XRAY (99)</td><td class="num">MRI</td></tr>
+            <tr><td class="num">model</td><td>str</td><td>product model name</td><td class="num">Polaris 3T</td></tr>
+            <tr><td class="num">country / region</td><td>str</td><td>10 countries rolled into EMEA / AMER / APAC</td><td class="num">GB / EMEA</td></tr>
+            <tr><td class="num">hospital_id / hospital_name</td><td>str</td><td>site the machine is installed at (203 hospitals)</td><td class="num">H045 · City General GB</td></tr>
+            <tr><td class="num">install_date</td><td>datetime</td><td>commissioning date, 2015–2024 → a mixed-age fleet</td><td class="num">2019-11-03</td></tr>
+            <tr><td class="num">scans_per_day</td><td>float</td><td>workload — drives usage-based wear on tubes</td><td class="num">34.6</td></tr>
+            <tr><td class="num">flaky_reporter</td><td>bool</td><td>machine with degraded connectivity (15% missing days vs 3%)</td><td class="num">False</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3 style="margin-top:2rem">telemetry — daily sensor readings <span class="pill watch">event · long format</span></h3>
+      <p>1,041,129 rows × 5 columns. <b>Grain:</b> machine-day-sensor. <b>PK:</b> <code>(machine_id, date, sensor)</code>.
+        <b>FK:</b> <code>machine_id</code>. This is the signal the model learns from.</p>
+      <div class="tbl-scroll">
+        <table class="tbl">
+          <thead><tr><th>Column</th><th>Type</th><th>What it is</th><th>Example</th></tr></thead>
+          <tbody>
+            <tr><td class="num">machine_id</td><td>str</td><td>FK → fleet_master</td><td class="num">FP-CT-0001</td></tr>
+            <tr><td class="num">date</td><td>datetime</td><td>reading day (whole of 2025; ~3% of days missing by design)</td><td class="num">2025-01-01</td></tr>
+            <tr><td class="num">sensor</td><td>str</td><td>14 distinct sensors, 4–7 per modality (MRI: helium_level, vibration_rms… · CT: tube_current_var, gantry_vibration… · XRAY: filament_current…)</td><td class="num">tube_current_var</td></tr>
+            <tr><td class="num">value</td><td>float</td><td>the reading, in the sensor's own unit &amp; scale</td><td class="num">1.196</td></tr>
+            <tr><td class="num">modality</td><td>category</td><td>denormalised for partitioning convenience</td><td class="num">CT</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3 style="margin-top:2rem">error_events — error-code emissions <span class="pill watch">event · append-only</span></h3>
+      <p>323,220 rows × 5 columns. <b>Grain:</b> one row per emission — duplicates of
+        <code>(machine, day, code)</code> are legitimate. <b>No PK.</b> <b>FK:</b> <code>machine_id</code>.</p>
+      <div class="tbl-scroll">
+        <table class="tbl">
+          <thead><tr><th>Column</th><th>Type</th><th>What it is</th><th>Example</th></tr></thead>
+          <tbody>
+            <tr><td class="num">machine_id</td><td>str</td><td>FK → fleet_master</td><td class="num">FP-MRI-0001</td></tr>
+            <tr><td class="num">date</td><td>datetime</td><td>emission day</td><td class="num">2025-01-02</td></tr>
+            <tr><td class="num">error_code</td><td>str</td><td>37 distinct codes</td><td class="num">SYS-102</td></tr>
+            <tr><td class="num">family</td><td>str</td><td>10 subsystems: SYS, NET, UI, TUBE, GANTRY, CRYO, DET, GRAD, RF, PWR</td><td class="num">SYS</td></tr>
+            <tr><td class="num">severity</td><td>str</td><td>info 95.8% · warning 3.8% · critical 0.4% — noise dominates by design</td><td class="num">info</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3 style="margin-top:2rem">failures — the ground truth <span class="pill crit">event · label source</span></h3>
+      <p>440 rows × 5 columns. <b>Grain:</b> component failure. <b>PK:</b> <code>(machine_id, failure_date, component)</code>.
+        <b>FK:</b> <code>machine_id</code>. The 7-day label is built from this table — and only this table.</p>
+      <div class="tbl-scroll">
+        <table class="tbl">
+          <thead><tr><th>Column</th><th>Type</th><th>What it is</th><th>Example</th></tr></thead>
+          <tbody>
+            <tr><td class="num">machine_id</td><td>str</td><td>FK → fleet_master</td><td class="num">FP-MRI-0001</td></tr>
+            <tr><td class="num">failure_date</td><td>datetime</td><td>day the machine went down</td><td class="num">2025-07-18</td></tr>
+            <tr><td class="num">component</td><td>str</td><td>7 components; xray_tube dominates (199 of 440)</td><td class="num">cold_head</td></tr>
+            <tr><td class="num">sudden</td><td>bool</td><td>14.8% fail with no precursor — an honest ceiling on recall</td><td class="num">False</td></tr>
+            <tr><td class="num">downtime_days</td><td>int</td><td>days offline (mean 2.5)</td><td class="num">3</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3 style="margin-top:2rem">maintenance — service visits <span class="pill ok">event</span></h3>
+      <p>1,454 rows × 4 columns. <b>Grain:</b> visit. <b>Key:</b> <code>(machine_id, date, maintenance_type)</code>.
+        <b>FK:</b> <code>machine_id</code>.</p>
+      <div class="tbl-scroll">
+        <table class="tbl">
+          <thead><tr><th>Column</th><th>Type</th><th>What it is</th><th>Example</th></tr></thead>
+          <tbody>
+            <tr><td class="num">machine_id</td><td>str</td><td>FK → fleet_master</td><td class="num">FP-MRI-0001</td></tr>
+            <tr><td class="num">date</td><td>datetime</td><td>visit day</td><td class="num">2025-04-29</td></tr>
+            <tr><td class="num">maintenance_type</td><td>str</td><td>scheduled (preventive) or corrective (repair after failure)</td><td class="num">scheduled</td></tr>
+            <tr><td class="num">component</td><td>str</td><td>repaired component — <i>empty for scheduled visits (meaningful NaN)</i></td><td class="num">cold_head</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3 style="margin-top:2rem">tickets — the service desk <span class="pill watch">event · free text</span></h3>
+      <p>1,610 rows × 9 columns. <b>Grain:</b> ticket. <b>No natural PK</b> (see §02 note). <b>FK:</b> <code>machine_id</code>;
+        corrective tickets soft-join to failures on <code>(machine_id, open_date)</code>. Ticket text is written
+        <i>after</i> the event — it may feed retrieval, never the classifier.</p>
+      <div class="tbl-scroll">
+        <table class="tbl">
+          <thead><tr><th>Column</th><th>Type</th><th>What it is</th><th>Example</th></tr></thead>
+          <tbody>
+            <tr><td class="num">machine_id</td><td>str</td><td>FK → fleet_master</td><td class="num">FP-MRI-0001</td></tr>
+            <tr><td class="num">open_date / close_date</td><td>datetime</td><td>ticket lifecycle</td><td class="num">2025-07-18 → 2025-07-21</td></tr>
+            <tr><td class="num">ticket_type</td><td>str</td><td>preventive 1,014 · corrective 440 · no_fault_found 156</td><td class="num">corrective</td></tr>
+            <tr><td class="num">component / part_replaced</td><td>str</td><td>what was fixed (18 distinct parts; NaN on preventive)</td><td class="num">cold_head · helium line seal kit</td></tr>
+            <tr><td class="num">engineer_id</td><td>str</td><td>49 engineers, coded by country</td><td class="num">ENG-GB-06</td></tr>
+            <tr><td class="num">downtime_days</td><td>int</td><td>days the machine was offline for this ticket</td><td class="num">3</td></tr>
+            <tr><td class="num">note_text</td><td>str</td><td>free-text engineer note with inconsistent shorthand — the NLP material</td><td>"boil-off rate above spec (esc L2). swapped compressor adsorber…"</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 04 WHAT THE DATA HOLDS ============ -->
+  <section class="section">
+    <div class="wrap">
+      <div class="section-head"><h2><span class="no">04</span> What the data holds — first look</h2></div>
+
+      <figure class="fig">
+        <img src="img/fleet_composition.png" alt="Bar charts: fleet by modality and by install year" />
+        <figcaption><b>Fig 2.</b> The fleet: 224 CT, 177 MRI, 99 X-ray across install years 2015–2024. A mixed-age
+          fleet matters — age is a genuine (but weak) failure driver, so the model can't win on age alone.
+          Synthetic composition, chosen to mirror a plausible installed base.</figcaption>
+      </figure>
+
+      <figure class="fig" style="margin-top:1.6rem">
+        <img src="img/class_balance.png" alt="Class balance of failure machine-weeks and failures by component" />
+        <figcaption><b>Fig 3.</b> Left: only 439 of 26,000 machine-weeks (1.7%) contain a failure — the imbalance that
+          makes "accuracy" meaningless and drives the choice of PR-AUC and precision@k. Right: failures concentrate in
+          the CT/X-ray tube (usage-driven wear), then MRI cold head and gantry bearings. Failure frequency is
+          deliberately upsampled vs reality so one simulated year is trainable — disclosed, not hidden.</figcaption>
+      </figure>
+
+      <figure class="fig" style="margin-top:1.6rem">
+        <img src="img/helium_drift.png" alt="Helium level time series for FP-MRI-0001 with failure marker" />
+        <figcaption><b>Fig 4.</b> Why prediction is possible at all: FP-MRI-0001's helium level drifts down for weeks
+          before its cold-head failure (dashed line), then resets after repair. Signals like this leak into the sensors
+          7–45 days ahead for ~85% of failures; the other ~15% are sudden and give no warning.</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <!-- ============ 05 KEY POINTS ============ -->
+  <section class="section">
+    <div class="wrap">
+      <div class="section-head"><h2><span class="no">05</span> Key points</h2></div>
+      <div class="grid three">
+        <div class="card"><div class="kicker">Structure</div><h3>One key rules the joins</h3>
+          <p>Star schema: five event tables join the asset register N:1 on <code>machine_id</code>. Features are
+          aggregations of events up to a scoring day; the join discipline is what keeps them leakage-free.</p></div>
+        <div class="card"><div class="kicker">Imbalance</div><h3>1.7% positives shapes everything</h3>
+          <p>With 439 failure weeks in 26,000, the problem is a ranking problem, not a classification problem —
+          hence a top-20 worklist judged by precision@k and recall@k, not accuracy.</p></div>
+        <div class="card"><div class="kicker">Text</div><h3>Tickets are post-hoc</h3>
+          <p>Engineer notes describe failures after they happen. They're gold for retrieval ("have we seen this
+          before?") and poison for the classifier — so they're structurally excluded from features.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ TAKEAWAY + LIMITS ============ -->
+  <section class="section">
+    <div class="wrap">
+      <div class="callout">
+        <p class="eyebrow">Takeaway</p>
+        <p>Know the grain, and the rest follows: every table has an explicit grain and key, every join runs through
+          <code>machine_id</code>, and the label comes from exactly one table. <b>That discipline — not the algorithm —
+          is what makes the 7-day failure model trustworthy.</b></p>
+      </div>
+      <div class="note" style="margin-top:1.2rem">
+        <b>Assumptions &amp; limits:</b> all data is synthetic, generated from Weibull failure physics with documented
+        simplifications. Failure frequency is upsampled (~1.7% of machine-weeks) so one year is trainable; real rates
+        are lower. The error taxonomy is flat (37 codes / 10 families) where real fleets have thousands of hierarchical
+        codes; there is one software version, no site effects, and no dispatch-driven label noise. This report tells
+        you how the tables relate — not how a real fleet behaves.
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ FOOTER (required — do not remove) ============ -->
+  <footer class="footer">
+    <div class="wrap">
+      <p><b>Fleet Pulse</b> — Data model &amp; EDA · authored for interview preparation</p>
+      <p>Independent portfolio project for interview preparation. Not affiliated with, endorsed by, or using data from Siemens Healthineers. All data is synthetic; machine names, figures, and brand styling are illustrative.</p>
+    </div>
+  </footer>
+
+</body>
+</html>

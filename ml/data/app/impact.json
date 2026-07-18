@@ -1,0 +1,192 @@
+{
+  "assumptions": {
+    "downtime_cost_per_day_usd": 27000,
+    "inspection_visit_cost_usd": 800,
+    "worklist_size": 20,
+    "note": "Synthetic-data illustration. Assumes a proactive inspection converts the unplanned downtime of a caught failure into a planned visit (downtime cost avoided; repair parts/labour still incurred either way, so excluded from both sides)."
+  },
+  "current_week": {
+    "as_of": "2025-12-29",
+    "fleet_expected_loss_usd": 106796.0,
+    "worklist_expected_cost_avoided_usd": 49505.0,
+    "worklist_inspection_spend_usd": 16000,
+    "worklist_expected_net_savings_usd": 33505.0,
+    "top_worklist": [
+      {
+        "machine_id": "FP-CT-0124",
+        "modality": "CT",
+        "country": "DE",
+        "hospital_name": "St. Mary's DE",
+        "risk_calibrated": 0.40560001134872437,
+        "expected_loss_usd": 21900.0
+      },
+      {
+        "machine_id": "FP-MRI-0066",
+        "modality": "MRI",
+        "country": "DE",
+        "hospital_name": "Sacred Heart DE",
+        "risk_calibrated": 0.22990000247955322,
+        "expected_loss_usd": 12413.0
+      },
+      {
+        "machine_id": "FP-CT-0040",
+        "modality": "CT",
+        "country": "AU",
+        "hospital_name": "City General AU",
+        "risk_calibrated": 0.09700000286102295,
+        "expected_loss_usd": 5239.0
+      },
+      {
+        "machine_id": "FP-CT-0202",
+        "modality": "CT",
+        "country": "GB",
+        "hospital_name": "Central Clinic GB",
+        "risk_calibrated": 0.02500000037252903,
+        "expected_loss_usd": 1350.0
+      },
+      {
+        "machine_id": "FP-CT-0189",
+        "modality": "CT",
+        "country": "GB",
+        "hospital_name": "Central Clinic GB",
+        "risk_calibrated": 0.02250000089406967,
+        "expected_loss_usd": 1217.0
+      },
+      {
+        "machine_id": "FP-MRI-0104",
+        "modality": "MRI",
+        "country": "US",
+        "hospital_name": "Regional Medical Center US",
+        "risk_calibrated": 0.02239999920129776,
+        "expected_loss_usd": 1209.0
+      },
+      {
+        "machine_id": "FP-MRI-0065",
+        "modality": "MRI",
+        "country": "US",
+        "hospital_name": "Metro Imaging US",
+        "risk_calibrated": 0.012199999764561653,
+        "expected_loss_usd": 660.0
+      },
+      {
+        "machine_id": "FP-MRI-0095",
+        "modality": "MRI",
+        "country": "GB",
+        "hospital_name": "Northside GB",
+        "risk_calibrated": 0.011699999682605267,
+        "expected_loss_usd": 630.0
+      },
+      {
+        "machine_id": "FP-MRI-0011",
+        "modality": "MRI",
+        "country": "GB",
+        "hospital_name": "Lakeview GB",
+        "risk_calibrated": 0.01119999960064888,
+        "expected_loss_usd": 604.0
+      },
+      {
+        "machine_id": "FP-CT-0125",
+        "modality": "CT",
+        "country": "ES",
+        "hospital_name": "University Hospital ES",
+        "risk_calibrated": 0.011099999770522118,
+        "expected_loss_usd": 599.0
+      },
+      {
+        "machine_id": "FP-MRI-0094",
+        "modality": "MRI",
+        "country": "US",
+        "hospital_name": "University Hospital US",
+        "risk_calibrated": 0.008999999612569809,
+        "expected_loss_usd": 486.0
+      },
+      {
+        "machine_id": "FP-CT-0020",
+        "modality": "CT",
+        "country": "DE",
+        "hospital_name": "University Hospital DE",
+        "risk_calibrated": 0.008299999870359898,
+        "expected_loss_usd": 451.0
+      },
+      {
+        "machine_id": "FP-CT-0082",
+        "modality": "CT",
+        "country": "GB",
+        "hospital_name": "Lakeview GB",
+        "risk_calibrated": 0.0071000000461936,
+        "expected_loss_usd": 385.0
+      },
+      {
+        "machine_id": "FP-CT-0183",
+        "modality": "CT",
+        "country": "US",
+        "hospital_name": "Regional Medical Center US",
+        "risk_calibrated": 0.0066999997943639755,
+        "expected_loss_usd": 360.0
+      },
+      {
+        "machine_id": "FP-CT-0029",
+        "modality": "CT",
+        "country": "JP",
+        "hospital_name": "City General JP",
+        "risk_calibrated": 0.006300000008195639,
+        "expected_loss_usd": 341.0
+      },
+      {
+        "machine_id": "FP-CT-0025",
+        "modality": "CT",
+        "country": "DE",
+        "hospital_name": "University Hospital DE",
+        "risk_calibrated": 0.006300000008195639,
+        "expected_loss_usd": 340.0
+      },
+      {
+        "machine_id": "FP-CT-0186",
+        "modality": "CT",
+        "country": "IN",
+        "hospital_name": "Sacred Heart IN",
+        "risk_calibrated": 0.006300000008195639,
+        "expected_loss_usd": 338.0
+      },
+      {
+        "machine_id": "FP-CT-0180",
+        "modality": "CT",
+        "country": "AU",
+        "hospital_name": "Lakeview AU",
+        "risk_calibrated": 0.006200000178068876,
+        "expected_loss_usd": 335.0
+      },
+      {
+        "machine_id": "FP-MRI-0129",
+        "modality": "MRI",
+        "country": "CN",
+        "hospital_name": "City General CN",
+        "risk_calibrated": 0.006000000052154064,
+        "expected_loss_usd": 324.0
+      },
+      {
+        "machine_id": "FP-CT-0019",
+        "modality": "CT",
+        "country": "CN",
+        "hospital_name": "Northside CN",
+        "risk_calibrated": 0.006000000052154064,
+        "expected_loss_usd": 323.0
+      }
+    ]
+  },
+  "backtest": {
+    "window": "2025-11-03 \u2192 2025-12-29",
+    "weeks": 9,
+    "inspection_visits": 180,
+    "inspection_spend_usd": 144000,
+    "failures_in_window": 54,
+    "failures_caught_by_worklist": 41,
+    "failures_missed": 13,
+    "downtime_days_avoided": 104.0,
+    "downtime_cost_avoided_usd": 2808000.0,
+    "net_savings_usd": 2664000.0,
+    "cost_of_missed_failures_usd": 810000.0,
+    "do_nothing_cost_usd": 3618000.0,
+    "downtime_cost_reduction_pct": 77.6
+  }
+}

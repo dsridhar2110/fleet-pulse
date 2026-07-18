@@ -1,0 +1,445 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>FleetPulse — Solution Blueprint</title>
+<style>
+  :root {
+    --ground: #08262B;
+    --ground-2: #0C343A;
+    --teal: #0E8A92;
+    --teal-bright: #24C9D0;
+    --paper: #FFFFFF;
+    --surface: #F1F6F6;
+    --ink: #0A2226;
+    --ink-soft: #47656B;
+    --line: #D7E4E4;
+    --line-strong: #BFD2D2;
+    --crit: #D64545;
+    --warn: #C67F14;
+    --good: #1F9E78;
+    --on-dark: #E9F4F4;
+    --on-dark-soft: #93B7B9;
+    --sans: "Helvetica Neue", Helvetica, Arial, system-ui, sans-serif;
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    --wrap: 940px;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--surface); color: var(--ink); font-family: var(--sans); font-size: 16px; line-height: 1.55; -webkit-font-smoothing: antialiased; }
+  .wrap { width: 100%; max-width: var(--wrap); margin: 0 auto; padding-inline: clamp(1.1rem, 4vw, 2rem); }
+  h1, h2, h3 { font-weight: 700; letter-spacing: -0.015em; margin: 0; line-height: 1.15; text-wrap: balance; }
+  p { margin: 0; }
+  .mono { font-family: var(--mono); }
+  .tnum { font-variant-numeric: tabular-nums; }
+
+  .head { background: linear-gradient(180deg, var(--ground) 0%, var(--ground-2) 100%); color: var(--on-dark); border-bottom: 3px solid var(--teal); }
+  .head .wrap { padding-block: clamp(2rem, 5vw, 3.2rem); }
+  .head .doclabel { font-family: var(--mono); font-size: 0.72rem; letter-spacing: 0.16em; text-transform: uppercase; color: var(--teal-bright); }
+  .head h1 { font-size: clamp(1.9rem, 4.6vw, 2.9rem); letter-spacing: -0.03em; margin-top: 0.8rem; }
+  .head .obj { color: var(--on-dark); font-size: clamp(1.02rem, 2vw, 1.18rem); max-width: 64ch; margin-top: 1rem; line-height: 1.5; }
+  .head .obj b { color: var(--teal-bright); font-weight: 600; }
+  .meta { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.12); border-radius: 10px; overflow: hidden; margin-top: 1.9rem; }
+  @media (max-width: 680px) { .meta { grid-template-columns: repeat(2, 1fr); } }
+  .meta div { background: var(--ground-2); padding: 0.85rem 1rem; }
+  .meta .k { font-size: 0.64rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--on-dark-soft); }
+  .meta .v { font-size: 0.92rem; margin-top: 0.25rem; color: var(--on-dark); font-weight: 600; }
+
+  section { padding-block: clamp(2.4rem, 5vw, 3.4rem); border-bottom: 1px solid var(--line); }
+  section:last-of-type { border-bottom: none; }
+  .sec-title { display: flex; align-items: baseline; gap: 0.8rem; margin-bottom: 1.5rem; }
+  .sec-title .no { font-family: var(--mono); font-size: 0.85rem; color: var(--teal); font-weight: 600; letter-spacing: 0.04em; padding-top: 0.15rem; }
+  .sec-title h2 { font-size: clamp(1.3rem, 3vw, 1.75rem); }
+  .lead { font-size: 1.06rem; max-width: 68ch; }
+  .lead b { font-weight: 700; }
+
+  .tbl-scroll { overflow-x: auto; border: 1px solid var(--line); border-radius: 10px; }
+  table { width: 100%; border-collapse: collapse; font-size: 0.92rem; background: var(--paper); }
+  th { text-align: left; font-size: 0.66rem; letter-spacing: 0.09em; text-transform: uppercase; color: var(--ink-soft); font-weight: 700; padding: 0.7rem 1rem; background: var(--surface); border-bottom: 1px solid var(--line-strong); white-space: nowrap; }
+  td { padding: 0.72rem 1rem; border-bottom: 1px solid var(--line); vertical-align: top; }
+  tr:last-child td { border-bottom: none; }
+  td.mono { font-family: var(--mono); font-size: 0.86rem; }
+
+  .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.8rem; margin-top: 1.4rem; }
+  @media (max-width: 680px) { .stats { grid-template-columns: repeat(2, 1fr); } }
+  .stat { background: var(--paper); border: 1px solid var(--line); border-radius: 10px; padding: 1rem 1.1rem; }
+  .stat .num { font-family: var(--mono); font-size: 1.7rem; font-weight: 700; letter-spacing: -0.02em; }
+  .stat .num.accent { color: var(--teal); }
+  .stat .num.crit { color: var(--crit); }
+  .stat .num.ok { color: var(--good); }
+  .stat .lbl { color: var(--ink-soft); font-size: 0.84rem; margin-top: 0.25rem; }
+
+  .arch { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
+  .arch .box { flex: 1 1 150px; background: var(--paper); border: 1px solid var(--line); border-radius: 10px; padding: 0.9rem 1rem; }
+  .arch .box .bl { font-family: var(--mono); font-size: 0.64rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--teal); }
+  .arch .box .bt { font-weight: 700; font-size: 0.95rem; margin-top: 0.25rem; }
+  .arch .box .bs { color: var(--ink-soft); font-size: 0.82rem; margin-top: 0.2rem; }
+  .arch .arw { color: var(--line-strong); font-weight: 700; }
+  @media (max-width: 680px) { .arch .arw { display: none; } }
+
+  .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.9rem; }
+  @media (max-width: 760px) { .grid3 { grid-template-columns: 1fr; } }
+  .card { background: var(--paper); border: 1px solid var(--line); border-radius: 10px; padding: 1.1rem 1.2rem; }
+  .card .kicker { font-family: var(--mono); font-size: 0.64rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--teal); }
+  .card h3 { font-size: 1.02rem; margin-top: 0.4rem; }
+  .card p { color: var(--ink-soft); font-size: 0.9rem; margin-top: 0.5rem; }
+  .card .q { color: var(--ink); font-style: italic; font-size: 0.92rem; margin-top: 0.5rem; }
+
+  .badge { font-family: var(--mono); font-size: 0.64rem; letter-spacing: 0.06em; text-transform: uppercase; padding: 0.24rem 0.6rem; border-radius: 999px; white-space: nowrap; height: fit-content; display: inline-block; }
+  .badge.done { background: rgba(31,158,120,0.14); color: var(--good); }
+  .badge.todo { background: rgba(198,127,20,0.15); color: var(--warn); }
+  .badge.design { background: rgba(95,139,146,0.16); color: var(--ink-soft); }
+
+  .deliv { display: flex; flex-direction: column; gap: 0.7rem; }
+  .deliv .row { display: grid; grid-template-columns: 28px 1fr auto; gap: 0.9rem; align-items: start; background: var(--paper); border: 1px solid var(--line); border-radius: 10px; padding: 0.95rem 1.1rem; }
+  .deliv .n { font-family: var(--mono); color: var(--teal); font-weight: 600; font-size: 0.9rem; }
+  .deliv .d .t { font-weight: 700; font-size: 0.98rem; }
+  .deliv .d .s { color: var(--ink-soft); font-size: 0.9rem; margin-top: 0.2rem; }
+
+  ul.checks { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 0.55rem; }
+  ul.checks li { position: relative; padding-left: 1.7rem; font-size: 0.98rem; }
+  ul.checks li::before { content: "✓"; position: absolute; left: 0; top: -0.05rem; color: var(--teal); font-weight: 700; }
+
+  .callout { background: var(--ground); color: var(--on-dark); border-radius: 12px; padding: 1.4rem 1.6rem; }
+  .callout .eyebrow { font-family: var(--mono); font-size: 0.66rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--teal-bright); margin-bottom: 0.5rem; }
+  .callout b { color: var(--teal-bright); }
+
+  /* ---- Module tabs ---- */
+  .tabs { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1.2rem; }
+  .tabs button { font-family: var(--sans); font-size: 0.92rem; font-weight: 700; color: var(--ink-soft); background: var(--paper); border: 1px solid var(--line); border-radius: 999px; padding: 0.55rem 1.15rem; cursor: pointer; }
+  .tabs button .mno { font-family: var(--mono); font-size: 0.72rem; color: var(--teal); margin-right: 0.45rem; }
+  .tabs button.active { background: var(--ground); color: var(--on-dark); border-color: var(--ground); }
+  .tabs button.active .mno { color: var(--teal-bright); }
+  .tabpanel { display: none; }
+  .tabpanel.active { display: block; }
+  .mod { background: var(--paper); border: 1px solid var(--line); border-radius: 12px; padding: 1.4rem 1.5rem; }
+  .mod .pstate { font-size: 1.03rem; max-width: 70ch; }
+  .mod .pstate b { color: var(--teal); }
+  .mod h4 { font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-soft); margin: 1.3rem 0 0.5rem; font-weight: 700; }
+  .mod .stackrow { display: grid; grid-template-columns: 130px 1fr; gap: 0.4rem 1rem; font-size: 0.92rem; }
+  .mod .stackrow .k { font-family: var(--mono); font-size: 0.78rem; color: var(--teal); font-weight: 600; padding-top: 0.1rem; }
+  code { font-family: var(--mono); font-size: 0.85em; background: rgba(14,138,146,0.08); padding: 0.1em 0.35em; border-radius: 4px; }
+
+  .footer { background: var(--ground); color: var(--on-dark-soft); font-size: 0.8rem; margin-top: 0; }
+  .footer .wrap { padding-block: 1.6rem; display: flex; flex-direction: column; gap: 0.4rem; }
+  .footer b { color: var(--on-dark); }
+</style>
+</head>
+<body>
+
+  <!-- ================= HEADER ================= -->
+  <header class="head">
+    <div class="wrap">
+      <p class="doclabel">Solution blueprint · Cloud slice · v1</p>
+      <h1>FleetPulse — from machine logs to a service decision</h1>
+      <p class="obj">A predictive service-intelligence platform for a simulated fleet of 500 imaging machines —
+        built as a working miniature of a <b>Customer Service analytics</b> organisation: a ranked inspection
+        worklist, an early-warning layer, a money view, and an engineer copilot. This page is the plan; every
+        claim on it is either <b>run for real</b> or <b>clearly marked as design</b>.</p>
+      <div class="meta">
+        <div><div class="k">Author</div><div class="v">Deekshita Sridhar</div></div>
+        <div><div class="k">Date</div><div class="v">2026-07-07</div></div>
+        <div><div class="k">Stack</div><div class="v">Parquet · PySpark · Databricks · Snowflake · Python · React</div></div>
+        <div><div class="k">Data</div><div class="v">Synthetic fleet · 1.37M rows</div></div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ================= 01 PROBLEM ================= -->
+  <section>
+    <div class="wrap">
+      <div class="sec-title"><span class="no">01</span><h2>The problem — downtime is the enemy</h2></div>
+      <p class="lead">When a hospital scanner fails unexpectedly, everyone loses at once: the hospital cancels
+        20–40 patient scans, the manufacturer pays SLA penalties and dispatches an engineer reactively, and the
+        service team — sitting on millions of log rows — finds out when the phone rings. The economics are
+        lopsided: <b>one day of unplanned downtime ≈ £25–30k; a proactive inspection visit ≈ £600.</b> Missing a
+        failure costs roughly 100× a wasted visit. FleetPulse's job is to turn the logs into three things a
+        service organisation can act on: <b>who to inspect this week, what's drifting off normal, and what fixed
+        this fault last time.</b></p>
+      <div class="stats">
+        <div class="stat"><div class="num tnum">500</div><div class="lbl">machines · 10 countries</div></div>
+        <div class="stat"><div class="num crit">1.7%</div><div class="lbl">machine-weeks with a failure — why "accuracy" is banned here</div></div>
+        <div class="stat"><div class="num ok">78%</div><div class="lbl">of failures caught by a top-20 weekly worklist</div></div>
+        <div class="stat"><div class="num accent">3 days</div><div class="lbl">median warning before failure — enough to schedule an engineer</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= 02 JD COVERAGE ================= -->
+  <section>
+    <div class="wrap">
+      <div class="sec-title"><span class="no">02</span><h2>Why this build — closing the JD gaps</h2></div>
+      <p class="lead">Existing projects already prove Python, XGBoost + SHAP, PySpark on 4.85M rows, SARIMA
+        forecasting, and NLP. <b>This build exists to cover what they don't.</b> The rule: run it for real where
+        a free tier exists; design it honestly where it doesn't.</p>
+      <div class="tbl-scroll" style="margin-top:1.2rem">
+        <table>
+          <thead><tr><th>JD topic</th><th>Before this build</th><th>Covered here by</th><th>How</th></tr></thead>
+          <tbody>
+            <tr><td><b>Databricks</b></td><td>never executed</td><td>feature pipeline on Databricks Free Edition</td><td><span class="badge todo">this sprint</span></td></tr>
+            <tr><td><b>Snowflake</b></td><td>never executed</td><td>feature + score tables, analytical SQL — real trial on Azure UK South</td><td><span class="badge todo">this sprint</span></td></tr>
+            <tr><td><b>Keras / TensorFlow</b></td><td>no trained model anywhere</td><td>Module 2 — autoencoder anomaly detector</td><td><span class="badge todo">this sprint</span></td></tr>
+            <tr><td><b>Agentic AI</b></td><td>one light project</td><td>Module 3 — tool-using Engineer Copilot (RAG)</td><td><span class="badge todo">this sprint</span></td></tr>
+            <tr><td><b>KQL (Kusto)</b></td><td>never touched</td><td>telemetry in a free Azure Data Explorer cluster + saved queries</td><td><span class="badge todo">stretch</span></td></tr>
+            <tr><td><b>CI/CD · GitHub</b></td><td>tests exist, no pipeline</td><td>GitHub Actions running the test suite (incl. leakage tests)</td><td><span class="badge todo">this sprint</span></td></tr>
+            <tr><td><b>Azure Blob · ADF</b></td><td>never executed</td><td>zone layout mapped 1:1; documented swap (<code>abfss://</code> paths, ADF as scheduler)</td><td><span class="badge design">design</span></td></tr>
+            <tr><td><b>Model monitoring</b></td><td>conceptual</td><td>PSI/KS drift + retrain-trigger design, written into the blueprint</td><td><span class="badge design">design</span></td></tr>
+            <tr><td><b>Neo4j graph</b></td><td>nothing built</td><td>companion <code>service-graph</code> project on the same data</td><td><span class="badge design">roadmap</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= 03 DATA ================= -->
+  <section>
+    <div class="wrap">
+      <div class="sec-title"><span class="no">03</span><h2>The data — six tables, one fleet</h2></div>
+      <p class="lead">Machine logs from a physics-based simulator: components wear out on Weibull lifetimes,
+        degradation leaks into the sensors for weeks before most failures, ~15% of failures give no warning at
+        all, and the data is deliberately imperfect — missing days, calibration offsets, engineers writing
+        "He level low" one day and "cryo issue" the next. It's a <b>star schema</b>: one dimension table
+        (the machines) and five event tables that join it on <code>machine_id</code> — in plain words, many
+        events belong to one machine.</p>
+      <div class="tbl-scroll" style="margin-top:1.2rem">
+        <table>
+          <thead><tr><th>Table</th><th>Rows</th><th>One row =</th><th>Key</th></tr></thead>
+          <tbody class="tnum">
+            <tr><td class="mono">fleet_master</td><td>500</td><td>one machine (the asset register)</td><td class="mono">PK machine_id</td></tr>
+            <tr><td class="mono">telemetry</td><td>1,041,129</td><td>one machine-day-sensor reading</td><td class="mono">PK (machine_id, date, sensor)</td></tr>
+            <tr><td class="mono">error_events</td><td>323,220</td><td>one error-code emission</td><td class="mono">append-only log</td></tr>
+            <tr><td class="mono">failures</td><td>440</td><td>one component failure — the ground truth</td><td class="mono">PK (machine_id, date, component)</td></tr>
+            <tr><td class="mono">maintenance</td><td>1,454</td><td>one service visit</td><td class="mono">(machine_id, date, type)</td></tr>
+            <tr><td class="mono">tickets</td><td>1,610</td><td>one free-text service ticket</td><td class="mono">no natural PK — like real service data</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p style="margin-top:1rem; color:var(--ink-soft); font-size:0.92rem">Feature engineering rolls the events
+        up to one row per machine-week — <span class="mono tnum">24,867 rows × 226 features</span> — with the
+        7-day failure label taken from <code>failures</code> only, a strict time-based split, and a unit test
+        that no feature can see past its scoring day. Full deep-dive: <span class="mono">reports/data-model-eda/</span>.</p>
+    </div>
+  </section>
+
+  <!-- ================= 04 PIPELINE ================= -->
+  <section>
+    <div class="wrap">
+      <div class="sec-title"><span class="no">04</span><h2>The pipeline — the JD stack, run thin but real</h2></div>
+      <p class="lead">A <b>medallion architecture</b> — raw data lands immutable, gets refined in stages, and only
+        the final layer feeds the product. Batch on a weekly cadence, because the decision it serves (the
+        worklist) is weekly.</p>
+      <div class="arch" style="margin-top:1.4rem">
+        <div class="box"><div class="bl">Landing · bronze</div><div class="bt">Parquet zones</div><div class="bs">partitioned machine logs — Azure Blob in prod, Databricks Volumes in the slice</div></div>
+        <span class="arw">→</span>
+        <div class="box"><div class="bl">Transform · silver</div><div class="bt">PySpark on Databricks</div><div class="bs">clean, join, aggregate to machine-week grain — same code as local</div></div>
+        <span class="arw">→</span>
+        <div class="box"><div class="bl">Serve · gold</div><div class="bt">Snowflake</div><div class="bs">feature + score tables, analytical SQL — trial on Azure UK South</div></div>
+        <span class="arw">→</span>
+        <div class="box"><div class="bl">Models</div><div class="bt">Python</div><div class="bs">XGBoost worklist (M1) · Keras autoencoder (M2) · batch scoring</div></div>
+        <span class="arw">→</span>
+        <div class="box"><div class="bl">Product</div><div class="bt">React dashboard</div><div class="bs">Command Center + machine pages + Copilot (M3), static JSON contract</div></div>
+      </div>
+      <p style="margin-top:1.1rem; color:var(--ink-soft); font-size:0.92rem"><b>Orchestration:</b> locally a
+        Makefile DAG; in production Azure Data Factory or Databricks Workflows on a schedule — same DAG, different
+        scheduler. <b>KQL:</b> Azure Data Explorer is where an engineer would interrogate raw telemetry ad hoc;
+        a free ADX cluster with saved Kusto queries is the stretch goal.</p>
+    </div>
+  </section>
+
+  <!-- ================= 05 PERSONAS ================= -->
+  <section>
+    <div class="wrap">
+      <div class="sec-title"><span class="no">05</span><h2>Who uses it — three personas, one build</h2></div>
+      <p class="lead">Same scores, three altitudes: a worklist for operations, an explanation for the engineer,
+        a P&amp;L line for the director.</p>
+      <div class="grid3" style="margin-top:1.3rem">
+        <div class="card">
+          <div class="kicker">P1 · Service Operations Manager</div>
+          <h3>"Priya" — runs regional dispatch</h3>
+          <p class="q">"Which machines get my engineers this week?"</p>
+          <p>Opens the Command Center Monday 8am → KPI band → ranked worklist → filters her region → assigns the
+            top risks. Cares about <b>precision</b> (wasted visits burn engineer-days) and the cost panel that
+            justifies her calls.</p>
+        </div>
+        <div class="card">
+          <div class="kicker">P2 · Field Service Engineer</div>
+          <h3>"David" — on the road</h3>
+          <p class="q">"I'm assigned FP-MRI-0103 — what am I walking into?"</p>
+          <p>Machine page → sees helium level falling 3 weeks → reads the top risk drivers in component language →
+            asks the Copilot "have we seen this before?" → gets 3 similar past tickets + the part that fixed
+            them → orders it before driving out.</p>
+        </div>
+        <div class="card">
+          <div class="kicker">P3 · Customer Service Director</div>
+          <h3>"Elena" — owns the P&amp;L and SLAs</h3>
+          <p class="q">"Is predictive maintenance actually saving us money?"</p>
+          <p>Executive view → fleet availability, failures caught early vs missed, cost avoided vs inspection
+            spend, SLA trend. Cares about one number — <b>net savings</b> — and whether false alarms are eroding
+            engineer trust.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= 06 MODULES (TABS) ================= -->
+  <section>
+    <div class="wrap">
+      <div class="sec-title"><span class="no">06</span><h2>The three modules</h2></div>
+      <div class="tabs" role="tablist">
+        <button class="active" data-tab="m1" role="tab"><span class="mno">M1</span>Failure Prediction + Impact Engine</button>
+        <button data-tab="m2" role="tab"><span class="mno">M2</span>Anomaly Detection</button>
+        <button data-tab="m3" role="tab"><span class="mno">M3</span>Engineer Copilot</button>
+      </div>
+
+      <!-- ---- Module 1 ---- -->
+      <div class="tabpanel active" id="m1">
+        <div class="mod">
+          <span class="badge done">engine built · wiring this sprint</span>
+          <p class="pstate" style="margin-top:0.9rem"><b>Problem statement:</b> rank the fleet by probability of
+            failure in the next 7 days, so a bounded weekly inspection budget catches the most failures — and
+            price every decision in money.</p>
+          <h4>Data in</h4>
+          <p>All six tables → 226 features per machine-week: rolling sensor statistics and trends over 7/14/30-day
+            windows, error-burst counts, maintenance recency, machine age and usage.</p>
+          <h4>How it works</h4>
+          <p>An <b>XGBoost classifier</b> with <b>Platt calibration</b> — calibration means a score of 0.4 really
+            behaves like a 40% chance, so a planner can trust it. Chosen over deep learning deliberately: tabular
+            data, few positives, native missing-value handling, and SHAP explainability. Honest results on the
+            held-out test window: <span class="mono tnum">PR-AUC 0.48</span> (random would be 0.013),
+            <span class="mono tnum">recall@20 = 0.78</span>, median lead time 3 days. On top sits the
+            <b>Business Impact Engine</b> — a deterministic money layer: expected loss per machine, cost avoided
+            by the top-20 worklist, inspection spend, net savings. That's the panel P1 defends and P3 reports.</p>
+          <h4>Stack</h4>
+          <div class="stackrow">
+            <span class="k">language</span><span>Python — pandas, PySpark, XGBoost, SHAP</span>
+            <span class="k">backend</span><span>batch scoring on Databricks → tables in Snowflake → exported JSON artifacts (the static API)</span>
+            <span class="k">frontend</span><span>Next.js/React Command Center — KPI band, ranked worklist, impact panel</span>
+            <span class="k">api calls</span><span class="mono">GET /api/fleet/summary · GET /api/machines?status=critical&amp;sort=risk · GET /api/impact/weekly</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ---- Module 2 ---- -->
+      <div class="tabpanel" id="m2">
+        <div class="mod">
+          <span class="badge done">built — trained on Databricks 2026-07-11</span>
+          <p class="pstate" style="margin-top:0.9rem"><b>Problem statement:</b> the classifier can only find
+            failure patterns it has labels for. Catch machines behaving abnormally in ways we've never labelled —
+            the unknown unknowns — and surface them as early warnings.</p>
+          <p style="margin-top:0.7rem"><b>Honest result:</b> test PR-AUC <span class="mono">0.111</span> — ~9× random
+            (0.013), above IsolationForest (0.074), <b>below the per-sensor z-score alarm (0.202)</b> and supervised
+            XGBoost (0.479). Reported openly; improvement path documented (max per-sensor error, per-modality models,
+            LSTM autoencoder).</p>
+          <h4>Data in</h4>
+          <p>Telemetry only, no labels needed (<b>unsupervised</b>). Sliding windows of per-sensor daily readings,
+            normalised per machine so a naturally-hot machine isn't permanently "anomalous".</p>
+          <h4>How it works</h4>
+          <p>A <b>Keras/TensorFlow autoencoder</b> — a neural network trained to compress and reconstruct
+            <i>normal</i> telemetry. When reconstruction error spikes, the machine has left normal behaviour.
+            It's benchmarked against the simpler baselines already in the repo (z-score, IsolationForest) — and
+            if it can't beat them, we say so. Its scores feed the dashboard's "watch" tier between healthy and
+            critical, and it closes the JD's explicit Keras/TensorFlow ask with the standard predictive-maintenance
+            use of an autoencoder — not a bolted-on demo.</p>
+          <h4>Stack</h4>
+          <div class="stackrow">
+            <span class="k">language</span><span>Python — Keras/TensorFlow, NumPy, pandas</span>
+            <span class="k">backend</span><span>trained offline; anomaly scores land in Snowflake beside the failure scores</span>
+            <span class="k">frontend</span><span>anomaly timeline strip on the machine detail page + "watch" chips on the worklist</span>
+            <span class="k">api calls</span><span class="mono">GET /api/anomalies?window=30d · GET /api/machines/{id} (includes anomaly series)</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ---- Module 3 ---- -->
+      <div class="tabpanel" id="m3">
+        <div class="mod">
+          <span class="badge todo">planned after M2</span>
+          <p class="pstate" style="margin-top:0.9rem"><b>Problem statement:</b> a field engineer's best asset is
+            the memory of 49 colleagues' past repairs — locked in 1,610 free-text tickets written in inconsistent
+            shorthand. Make that memory queryable in plain English.</p>
+          <h4>Data in</h4>
+          <p>Ticket notes, failure/repair history, the model's per-machine risk drivers, and small synthetic
+            service-manual snippets. One guardrail worth saying out loud: ticket text is written <i>after</i> a
+            failure, so it feeds retrieval — <b>never</b> the classifier's features. That would be label leakage.</p>
+          <h4>How it works</h4>
+          <p>The <b>RAG pattern</b> (Retrieval-Augmented Generation), retrieval-first: ticket text → embeddings →
+            a local vector store (<b>ChromaDB</b>). Ask <i>"why is FP-MRI-0103 high risk, and what fixed this
+            before?"</i> and the copilot pulls the machine's risk drivers <i>and</i> the most similar historical
+            tickets, composing an answer with citations. The <b>agentic</b> part: it chooses which tools to call —
+            risk lookup, ticket search, parts history — before answering. The deployed version is retrieval-only,
+            so every answer traces to a real ticket; an Azure OpenAI generation layer is the documented plug-in
+            point. Next step on the same data: the <b>Neo4j knowledge graph</b> (machine → component → failure →
+            ticket → engineer) in the companion service-graph project.</p>
+          <h4>Stack</h4>
+          <div class="stackrow">
+            <span class="k">language</span><span>Python — sentence-transformers embeddings, ChromaDB</span>
+            <span class="k">backend</span><span>precomputed retrieval index shipped with the site; agent = tool-router over risk/tickets/parts</span>
+            <span class="k">frontend</span><span>chat-style Copilot panel on the machine page, answers with cited tickets</span>
+            <span class="k">api calls</span><span class="mono">POST /api/copilot/ask {machine_id, question} → answer + citations</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= 07 HONESTY + BUILD ORDER ================= -->
+  <section>
+    <div class="wrap">
+      <div class="sec-title"><span class="no">07</span><h2>Honesty ledger &amp; build order</h2></div>
+      <div class="grid3" style="grid-template-columns: 1fr 1fr; margin-bottom:1.6rem">
+        <div class="card">
+          <div class="kicker" style="color:var(--good)">Ran for real</div>
+          <ul class="checks" style="margin-top:0.7rem">
+            <li>Star-schema data generation, Parquet zones, PySpark features</li>
+            <li>XGBoost + calibration + SHAP, leakage unit-tested</li>
+            <li>Databricks Free + Snowflake trial accounts live (2026-07-07)</li>
+            <li>This sprint: Databricks run, Snowflake SQL, Keras autoencoder, ChromaDB copilot, dashboard, CI</li>
+          </ul>
+        </div>
+        <div class="card">
+          <div class="kicker" style="color:var(--warn)">Designed, not run — said proudly</div>
+          <ul class="checks" style="margin-top:0.7rem">
+            <li>Azure Blob + Data Factory orchestration (1:1 mapping documented)</li>
+            <li>Azure OpenAI generation layer on the Copilot</li>
+            <li>Event Hub streaming telemetry</li>
+            <li>Production model monitoring (PSI/KS drift, retrain trigger) · Neo4j graph (companion project)</li>
+          </ul>
+        </div>
+      </div>
+      <div class="deliv">
+        <div class="row"><span class="n">1</span><div class="d"><div class="t">Business Impact Engine</div><div class="s">expected loss, cost avoided, net savings — computed &amp; exported (backtest: 41/54 failures caught, net ≈ $2.66M); Command Center panel pending</div></div><span class="badge done">engine done</span></div>
+        <div class="row"><span class="n">2</span><div class="d"><div class="t">Databricks run</div><div class="s">feature pipeline on Free Edition — notebook committed, screenshots captured</div></div><span class="badge todo">this sprint</span></div>
+        <div class="row"><span class="n">3</span><div class="d"><div class="t">Snowflake layer</div><div class="s">load features + scores, write the analytical SQL — before trial lapses ~2026-08-06</div></div><span class="badge todo">this sprint</span></div>
+        <div class="row"><span class="n">4</span><div class="d"><div class="t">Module 2 — Keras autoencoder</div><div class="s">trained on Databricks serverless; honest benchmark shipped (PR-AUC 0.111 — beats IsolationForest, loses to z-score alarm); anomaly scores exported</div></div><span class="badge done">done</span></div>
+        <div class="row"><span class="n">5</span><div class="d"><div class="t">Module 3 — Copilot</div><div class="s">ChromaDB index + retrieval panel</div></div><span class="badge todo">this sprint</span></div>
+        <div class="row"><span class="n">6</span><div class="d"><div class="t">Dashboard wiring + case study</div><div class="s">worklist, machine page, impact panel, anomaly strip — then the send-ahead package</div></div><span class="badge todo">closes the sprint</span></div>
+      </div>
+      <div class="callout" style="margin-top:1.6rem">
+        <p class="eyebrow">The close that wins the room</p>
+        <p>"It's a toy next to your installed base — the physics is simulated and every simplification is
+          documented. With your real fleet, <b>my first two weeks would be sitting with service engineers finding
+          where my generator's assumptions are wrong</b> — that's the fastest way to make the model trustworthy."</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= FOOTER ================= -->
+  <footer class="footer">
+    <div class="wrap">
+      <p><b>FleetPulse</b> — Solution blueprint · authored for interview preparation</p>
+      <p>Independent portfolio project for interview preparation. Not affiliated with, endorsed by, or using data from Siemens Healthineers. All data is synthetic; machine names, figures, and brand styling are illustrative.</p>
+    </div>
+  </footer>
+
+<script>
+  document.querySelectorAll('.tabs button').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      document.querySelectorAll('.tabs button').forEach(function (b) { b.classList.remove('active'); });
+      document.querySelectorAll('.tabpanel').forEach(function (p) { p.classList.remove('active'); });
+      btn.classList.add('active');
+      document.getElementById(btn.dataset.tab).classList.add('active');
+    });
+  });
+</script>
+</body>
+</html>

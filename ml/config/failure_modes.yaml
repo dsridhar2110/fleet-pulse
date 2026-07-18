@@ -1,0 +1,135 @@
+# Fleet Pulse — component failure physics, per modality.
+#
+# Each component fails according to a Weibull lifetime distribution on its
+# EFFECTIVE AGE (years). shape k > 1 encodes wear-out (hazard rises with age).
+# `usage_driven: true` means effective age accrues with usage intensity
+# (e.g., a CT tube ages by scan-seconds, not by the calendar).
+#
+# `precursor` defines how degradation leaks into sensors BEFORE failure:
+# during a randomized window of `window_days` before the failure date, the
+# listed sensors drift by up to `magnitude_sigma` noise-sigmas (linear ramp),
+# and the listed warning error-code family's daily Poisson rate ramps up to
+# `warn_rate_peak` events/day. A `sudden_failure_fraction` of failures
+# (fleet_config.yaml) skip the precursor entirely.
+#
+# Sensor baselines/noise are defined under `sensors` per modality.
+# All values are simulation choices motivated by failure-physics intuition,
+# NOT measurements of real equipment. See docs/synthetic_data_design.md.
+
+modalities:
+
+  MRI:
+    sensors:
+      helium_level:      {baseline: 97.0, sigma: 0.35, drift_sign: -1, unit: pct}
+      compressor_temp:   {baseline: 55.0, sigma: 1.8,  drift_sign: +1, unit: degC}
+      gradient_temp:     {baseline: 42.0, sigma: 1.5,  drift_sign: +1, unit: degC}
+      rf_power_var:      {baseline: 1.0,  sigma: 0.20, drift_sign: +1, unit: ratio}
+      vibration_rms:     {baseline: 0.8,  sigma: 0.12, drift_sign: +1, unit: mm_s}
+      chiller_flow:      {baseline: 30.0, sigma: 1.0,  drift_sign: -1, unit: l_min}
+    usage:
+      scans_per_day: [18, 35]     # per-machine baseline drawn uniformly
+    components:
+      cold_head:
+        weibull_shape: 2.2
+        weibull_scale_years: 6.0
+        precursor:
+          window_days: [14, 45]
+          sensors: {helium_level: 3.5, compressor_temp: 3.0}
+          warn_code_family: CRYO
+          warn_rate_peak: 2.5
+        parts: ["cold head assembly", "compressor adsorber", "helium line seal kit"]
+      gradient_coil:
+        weibull_shape: 1.8
+        weibull_scale_years: 9.0
+        precursor:
+          window_days: [10, 30]
+          sensors: {gradient_temp: 3.0, vibration_rms: 2.0}
+          warn_code_family: GRAD
+          warn_rate_peak: 2.0
+        parts: ["gradient amplifier board", "coil cooling loop"]
+      rf_amplifier:
+        weibull_shape: 2.0
+        weibull_scale_years: 8.0
+        precursor:
+          window_days: [7, 21]
+          sensors: {rf_power_var: 3.0}
+          warn_code_family: RF
+          warn_rate_peak: 1.8
+        parts: ["RF amplifier module", "RF fuse set"]
+
+  CT:
+    sensors:
+      tube_current_var:  {baseline: 1.0,  sigma: 0.15, drift_sign: +1, unit: ratio}
+      tube_temp:         {baseline: 61.0, sigma: 2.0,  drift_sign: +1, unit: degC}
+      detector_noise:    {baseline: 1.0,  sigma: 0.10, drift_sign: +1, unit: ratio}
+      gantry_vibration:  {baseline: 1.1,  sigma: 0.15, drift_sign: +1, unit: mm_s}
+      cooling_margin:    {baseline: 12.0, sigma: 0.9,  drift_sign: -1, unit: degC}
+    usage:
+      scans_per_day: [40, 90]
+    components:
+      xray_tube:
+        weibull_shape: 2.5
+        weibull_scale_years: 4.0
+        usage_driven: true          # tube ages by scan-seconds, not calendar time
+        precursor:
+          window_days: [7, 30]
+          sensors: {tube_current_var: 3.5, tube_temp: 2.5}
+          warn_code_family: TUBE    # arc-count style warnings
+          warn_rate_peak: 4.0
+        parts: ["X-ray tube", "HV cable set", "oil cooling unit"]
+      detector_array:
+        weibull_shape: 1.9
+        weibull_scale_years: 8.0
+        precursor:
+          window_days: [10, 35]
+          sensors: {detector_noise: 3.0}
+          warn_code_family: DET
+          warn_rate_peak: 2.0
+        parts: ["detector module", "DAS board"]
+      gantry_bearing:
+        weibull_shape: 2.3
+        weibull_scale_years: 7.0
+        precursor:
+          window_days: [14, 45]
+          sensors: {gantry_vibration: 3.5}
+          warn_code_family: GANTRY
+          warn_rate_peak: 2.2
+        parts: ["main bearing", "slip ring brush set"]
+
+  XRAY:
+    sensors:
+      filament_current:  {baseline: 5.0,  sigma: 0.12, drift_sign: +1, unit: A}
+      voltage_ripple:    {baseline: 1.0,  sigma: 0.10, drift_sign: +1, unit: ratio}
+      tube_temp:         {baseline: 48.0, sigma: 1.6,  drift_sign: +1, unit: degC}
+    usage:
+      scans_per_day: [25, 70]
+    components:
+      xray_tube:
+        weibull_shape: 2.2
+        weibull_scale_years: 6.0
+        usage_driven: true
+        precursor:
+          window_days: [7, 25]
+          sensors: {filament_current: 3.0, tube_temp: 2.0}
+          warn_code_family: TUBE
+          warn_rate_peak: 3.0
+        parts: ["X-ray tube insert", "collimator assembly"]
+      generator:
+        weibull_shape: 1.8
+        weibull_scale_years: 9.0
+        precursor:
+          window_days: [10, 30]
+          sensors: {voltage_ripple: 3.0}
+          warn_code_family: PWR
+          warn_rate_peak: 2.0
+        parts: ["HV generator board", "capacitor bank"]
+
+# Error-code taxonomy. Most volume is benign/informational (the model must
+# learn WHICH families matter — error-burst features are earned, not given).
+error_codes:
+  benign_families:            # daily Poisson rate per machine, uncorrelated with failure
+    SYS:  {rate_per_day: 0.9}   # system info: reboots, updates, self-tests
+    NET:  {rate_per_day: 0.5}   # connectivity blips
+    UI:   {rate_per_day: 0.3}   # operator-side messages
+  warning_families: [CRYO, GRAD, RF, TUBE, DET, GANTRY, PWR]  # ramp with degradation
+  critical_on_failure: 3      # burst of critical codes emitted on the failure day

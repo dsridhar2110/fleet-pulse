@@ -1,0 +1,120 @@
+<!doctype html>
+<!--
+  Fleet Pulse — Report Template
+  HOW TO USE:
+  1. Copy this file to reports/<your-report-name>/index.html
+  2. Fix the stylesheet path below to point at design/report.css from the new location.
+     From reports/<name>/index.html that is:  ../../design/report.css
+  3. To share as a single standalone file, replace the <link> with the full contents
+     of report.css inside a <style>…</style> block (paste it in).
+  4. Fill in the content. Delete the component blocks you don't need.
+  5. Keep the footer disclaimer. Do NOT add new colors or fonts. See design/DESIGN-SYSTEM.md.
+-->
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Report Title — Fleet Pulse</title>
+  <link rel="stylesheet" href="../../design/report.css" />
+</head>
+<body>
+
+  <!-- ============ COVER ============ -->
+  <header class="cover">
+    <div class="wrap">
+      <p class="eyebrow">EDA · v1</p> <!-- e.g. "Case study", "One-pager", "EDA" -->
+      <h1>Report title goes here</h1>
+      <p class="objective"><b>Objective:</b> one sentence on what this report shows and why it matters to the service team.</p>
+      <div class="meta">
+        <div><div class="k">Author</div><div class="v">Deekshita</div></div>
+        <div><div class="k">Date</div><div class="v">— — —</div></div>
+        <div><div class="k">Dataset</div><div class="v">Synthetic fleet · 500 machines</div></div>
+        <div><div class="k">Type</div><div class="v">Exploratory analysis</div></div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ============ LEAD FINDINGS (stat band) ============ -->
+  <section class="section">
+    <div class="wrap">
+      <div class="section-head"><h2><span class="no">01</span> Headline</h2></div>
+      <p class="lead">Open with the business "so what", in one or two sentences, before any method.</p>
+      <div class="stats" style="margin-top:1.3rem">
+        <div class="stat"><div class="num accent">500</div><div class="lbl">machines analysed</div></div>
+        <div class="stat"><div class="num crit">13</div><div class="lbl">critical this week</div></div>
+        <div class="stat"><div class="num">0.48</div><div class="lbl">model PR-AUC</div></div>
+        <div class="stat"><div class="num ok">78%</div><div class="lbl">failures caught in top-20</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ NARRATIVE + TABLE ============ -->
+  <section class="section">
+    <div class="wrap">
+      <div class="section-head"><h2><span class="no">02</span> What the data shows</h2></div>
+      <p class="lead">A paragraph of analysis. Name things as a service manager would. Give numbers context.</p>
+
+      <div class="tbl-scroll" style="margin-top:1.2rem">
+        <table class="tbl">
+          <thead><tr><th>Metric</th><th>Value</th><th>Reading</th></tr></thead>
+          <tbody>
+            <tr><td>PR-AUC (XGBoost)</td><td class="num">0.48</td><td>vs random baseline ~0.013</td></tr>
+            <tr><td>Precision@20</td><td class="num">0.23</td><td>~1 in 4–5 inspections pays off</td></tr>
+            <tr><td>Recall@20</td><td class="num">0.78</td><td>top-20 list captures 78% of failures</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ FIGURE ============ -->
+  <section class="section">
+    <div class="wrap">
+      <div class="section-head"><h2><span class="no">03</span> Figure</h2></div>
+      <figure class="fig">
+        <img src="img/your-chart.png" alt="Describe the chart" />
+        <figcaption><b>Fig 1.</b> What the chart shows and its takeaway. Note the synthetic-data caveat where relevant.</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <!-- ============ CARDS ============ -->
+  <section class="section">
+    <div class="wrap">
+      <div class="section-head"><h2><span class="no">04</span> Key points</h2></div>
+      <div class="grid three">
+        <div class="card"><div class="kicker">Point</div><h3>Short title</h3><p>One concrete idea.</p></div>
+        <div class="card"><div class="kicker">Point</div><h3>Short title</h3><p>One concrete idea.</p></div>
+        <div class="card"><div class="kicker">Point</div><h3>Short title</h3><p>One concrete idea.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ CALLOUT + NOTE + PILLS ============ -->
+  <section class="section">
+    <div class="wrap">
+      <div class="callout">
+        <p class="eyebrow">Takeaway</p>
+        <p>The single most important conclusion, stated plainly. <b>Lead with the decision, not the method.</b></p>
+      </div>
+      <div class="note" style="margin-top:1.2rem">
+        <b>Assumptions & limits:</b> state what is synthetic/simplified here. Every report names what it cannot tell you.
+      </div>
+      <p style="margin-top:1.2rem">Inline state chips:
+        <span class="pill crit">Critical</span>
+        <span class="pill watch">Watch</span>
+        <span class="pill ok">Healthy</span>
+      </p>
+    </div>
+  </section>
+
+  <!-- ============ FOOTER (required — do not remove) ============ -->
+  <footer class="footer">
+    <div class="wrap">
+      <p><b>Fleet Pulse</b> — Report title · authored for interview preparation</p>
+      <p>Independent portfolio project for interview preparation. Not affiliated with, endorsed by, or using data from Siemens Healthineers. All data is synthetic; machine names, figures, and brand styling are illustrative.</p>
+    </div>
+  </footer>
+
+</body>
+</html>
