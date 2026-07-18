@@ -61,6 +61,42 @@
   --ring: var(--primary);
 }
 
+/* Light theme — a clean modern SaaS light world (not an inversion). Applied when
+   the viewer toggles: the root gets data-theme="light". Default (no attr) stays dark. */
+:root[data-theme="light"] {
+  --bg: #f5f6fb;
+  --bg-2: #ffffff;
+  --surface: #ffffff;
+  --surface-2: #f2f4fa;
+  --surface-3: #e8ebf5;
+  --border: #e4e7f0;
+  --border-2: #d2d8e6;
+
+  --text: #1a2030;
+  --muted: #59617a;
+  --faint: #8a92a6;
+
+  --primary: #5a62ea;
+  --primary-2: #8b63ef;
+  --primary-ink: #4a51cf;
+  --glow: rgba(90, 98, 234, 0.20);
+
+  --data: #0fa88f;
+  --data-2: #2b8fe0;
+  --data-3: #c657d6;
+
+  --critical: #e5484d;
+  --watch: #cf7a13;
+  --healthy: #12a377;
+
+  --card: var(--surface);
+  --popover: var(--surface-2);
+  --primary-foreground: #ffffff;
+  --secondary: var(--surface-2);
+  --accent: var(--surface-3);
+  --input: var(--border);
+}
+
 @layer base {
   * { border-color: var(--border); }
   html { font-family: var(--font-sans, system-ui, -apple-system, sans-serif); }
@@ -128,6 +164,13 @@
 .spin { animation: spin 0.8s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
 
+.theme-toggle {
+  display: inline-grid; place-items: center; width: 34px; height: 34px; border-radius: 999px;
+  background: var(--surface-2); border: 1px solid var(--border-2); color: var(--muted); cursor: pointer;
+  transition: color .14s ease, background .14s ease, border-color .14s ease;
+}
+.theme-toggle:hover { color: var(--text); border-color: var(--primary); }
+
 .clock {
   display: inline-flex; align-items: center; gap: 8px; padding: 7px 13px; border-radius: 999px;
   background: var(--surface-2); border: 1px solid var(--border-2); font-size: 0.8rem; color: var(--muted);
@@ -174,7 +217,7 @@
 .hero-eyebrow { display: inline-flex; align-items: center; gap: 8px; font-family: var(--font-mono); font-size: 0.72rem; letter-spacing: 0.08em; color: var(--primary-ink); text-transform: uppercase; }
 .hero h2 { font-size: clamp(1.5rem, 3vw, 2.1rem); font-weight: 680; letter-spacing: -0.02em; margin: 14px 0 8px; max-width: 22ch; text-wrap: balance; }
 .hero p { color: var(--muted); max-width: 56ch; font-size: 0.94rem; }
-.hero-figure { font-size: clamp(2.6rem, 6vw, 3.8rem); font-weight: 720; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; background: linear-gradient(120deg, #fff, var(--data)); -webkit-background-clip: text; background-clip: text; color: transparent; line-height: 1; }
+.hero-figure { font-size: clamp(2.6rem, 6vw, 3.8rem); font-weight: 720; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; background: linear-gradient(120deg, var(--text), var(--data)); -webkit-background-clip: text; background-clip: text; color: transparent; line-height: 1; }
 
 /* ---------- Pills / chips ------------------------------------------------- */
 .pill { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border-radius: 999px; font-size: 0.74rem; font-weight: 600; letter-spacing: 0.01em; }

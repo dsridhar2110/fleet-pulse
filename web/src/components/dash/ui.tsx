@@ -1,5 +1,6 @@
 import React from "react";
 import { AdvanceButton } from "./advance-button";
+import { ThemeToggle } from "./theme-toggle";
 
 export function fmtMoney(n: number, cents = false): string {
   const a = Math.abs(n);
@@ -24,6 +25,7 @@ export function Topbar({ title, currentDate }: { title: string; currentDate: str
       </div>
       <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
         {process.env.ALLOW_TICK === "1" && <AdvanceButton />}
+        <ThemeToggle />
         <div className="clock">
           <span className="dot" />
           Live · as of&nbsp;<b>{currentDate ? fmtDate(currentDate) : "—"}</b>

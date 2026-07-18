@@ -14,6 +14,16 @@
 >
 > **Disclaimer unchanged:** independent interview prep; synthetic data; not affiliated with,
 > endorsed by, or built on data from Siemens Healthineers.
+>
+> **🟢 LIVE & SELF-RUNNING (2026-07-20):**
+> - **App:** https://fleet-pulse-olive.vercel.app — public, reads Neon live (Vercel project
+>   `fleet-pulse`, hosting account `mkshamanth-4013`).
+> - **Code:** https://github.com/dsridhar2110/fleet-pulse — public, commit authored as
+>   `dsridhar2110`.
+> - **Cron:** GitHub Actions `daily-tick.yml` (06:00 UTC) + `weekly-retrain.yml` (Mon 04:00
+>   UTC) are **active**; `DATABASE_URL` secret set. The daily cron was verified end-to-end in
+>   CI — it advanced the world Jul 20 → Jul 21 on GitHub's runners. The system now advances
+>   itself every morning with no local machine involved.
 
 ---
 

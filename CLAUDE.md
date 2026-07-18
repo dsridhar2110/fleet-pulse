@@ -17,6 +17,23 @@ an **independent portfolio project built to prepare for an interview** (see §1)
 **not affiliated with, endorsed by, or built on data from Siemens Healthineers**; all
 data is synthetic and all brand styling is an independent concept.
 
+> ### ⚡ v2 — THE LIVING SYSTEM (current, read `LIVING-SYSTEM.md` first)
+> Fleet Pulse pivoted from a one-shot batch/static case study to a **living, self-advancing
+> product**. A hosted daily cron generates near-real telemetry, onboards new customers, scores
+> five horizons (7/14/30/90/180d), logs the decisions a service team takes and their realized
+> outcomes, prices the economics, and **learns under human governance** (champion/challenger
+> continual learning) — all persisted in **Neon Postgres** and shown in a **modern dark
+> command-center dashboard**.
+> - **🟢 LIVE app:** https://fleet-pulse-olive.vercel.app (public, reads Neon live)
+> - **Code:** https://github.com/dsridhar2110/fleet-pulse (public)
+> - **Self-running:** GitHub Actions `daily-tick.yml` advances the clock every morning; verified in CI.
+> - **Full v2 spec & architecture:** [`LIVING-SYSTEM.md`](LIVING-SYSTEM.md). The engine lives in
+>   `ml/src/{sim,db,serve,models}`; the dashboard in `web/` (Next.js, reads Neon).
+>
+> The sections below describe the v1 batch engine (still the foundation — generator physics,
+> leakage discipline, honest metrics). Where v1 says "static JSON / 7-day plan / single-page
+> case study," v2 supersedes it with the live daily loop above.
+
 ---
 
 ## 1. Why this exists (the objective)
@@ -315,11 +332,18 @@ make train → export_web.py`, then rebuild `web/`.
 
 ## 11. Current status & immediate next steps
 
-> **LIVE (2026-07-13): https://fleetpulse-service.vercel.app** — single-page case study
-> (problem → data & complexity → Modules 1/2/3 → stack → limits). Public, no auth.
-> Deployed from `web/` on Vercel (account `mkshamanth-4013`, project `fleet-pulse`).
-> Deployment Protection was ON by default and has been **disabled** — re-check after any
-> project re-create, or recruiters hit a Vercel login wall.
+> **⚡ v2 LIVING SYSTEM IS LIVE (2026-07-20): https://fleet-pulse-olive.vercel.app** — the
+> modern dark command-center dashboard (Overview · Machines · Predictions · Decisions ·
+> Economics · Model & Governance · per-machine drill-down), reading **Neon Postgres** live.
+> Public, no auth. Code at **https://github.com/dsridhar2110/fleet-pulse**. A daily GitHub
+> Actions cron advances the world one day every morning (verified end-to-end in CI). See
+> [`LIVING-SYSTEM.md`](LIVING-SYSTEM.md) for the full v2 architecture, build phases, and status.
+> Honest results carried into v2: 7-day PR-AUC ~0.51, recall@20 ~0.87; ~$11M net saved, ~97%
+> detection, ~13× ROI (synthetic). Model-evolution page uses **real quarterly retrains** (the
+> gate held two challengers that didn't beat the champion — non-monotonic and honest).
+>
+> _v1 (superseded): the single-page case study `fleetpulse-service.vercel.app` deployed from
+> the old static `web/`. The batch engine below remains the foundation._
 >
 > **Module 3 (Engineer Copilot) is now BUILT** — `ml/src/models/retrieval.py`: TF-IDF +
 > cosine over the symptom half of 440 corrective tickets (indexing the full note would

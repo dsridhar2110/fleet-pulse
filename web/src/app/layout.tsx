@@ -16,6 +16,12 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
   return (
     <html lang="en" className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
       <body>
+        {/* Set the saved theme before paint to avoid a flash (default: dark). */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var q=new URLSearchParams(location.search).get('theme');var t=(q==='light'||q==='dark')?q:(localStorage.getItem('fp-theme')||'dark');if(q)localStorage.setItem('fp-theme',t);document.documentElement.setAttribute('data-theme',t);}catch(e){document.documentElement.setAttribute('data-theme','dark');}})();`,
+          }}
+        />
         <div className="app">
           <Sidebar />
           <div className="main">{children}</div>
